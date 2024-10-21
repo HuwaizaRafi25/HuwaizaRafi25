@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+    margin: 0;
+    padding: 0;
+    background-color: #eaeaea
+}
+
+.overlay {
+    background-color: rgba(99, 99, 99, 0.226);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    /* Lebar overlay */
+    height: 85%;
+    /* Tinggi overlay */
+    border-radius: 0.5rem;
+    padding: 3rem 2rem 3rem 2rem;
+    /* Margin internal untuk div di dalamnya */
+}
+
+.content {
+    background-color: white;
+    border-radius: 1rem;
+    /* Border radius untuk div content */
+    height: 100%;
+    /* Tinggi penuh overlay */
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+    /* Bayangan untuk efek kedalaman */
+    position: relative;
+    z-index: 20;
+    /* Pastikan lebih depan dari overlay */
+}
+
+.image-side {
+    background: url('assets/images/pattern.jpg') no-repeat center center;
+    background-size: cover;
+}

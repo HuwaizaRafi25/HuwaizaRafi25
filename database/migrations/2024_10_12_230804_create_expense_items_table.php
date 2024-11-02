@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('expense_header_id')->constrained('expense_headers');
             $table->string('item_name');
             $table->bigInteger('amount');
+            $table->enum('status', ['active', 'trashed'])->default('active');
             $table->timestamps();
         });
     }

@@ -58,7 +58,7 @@
 </head>
 <body>
     <div class="back-button">
-        <a href="javascript:history.back()" class="button">
+        <a href="{{ route('dashboard') }}" class="button">
             <span class="arrow">&#8592;</span> Back
         </a>
     </div>

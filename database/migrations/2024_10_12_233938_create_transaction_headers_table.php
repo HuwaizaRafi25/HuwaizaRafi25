@@ -14,10 +14,9 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('customer_id')->constrained('users');
             $table->bigInteger('total_price');
-            $table->string('midtrans_transaction_id')->nullable();
-            $table->enum('payment_type', ['midtrans', 'cash'])->default('midtrans');
-            $table->enum('status', ['pending', 'paid', 'cancelled', 'expired'])->default('pending');
-            $table->timestamp('payment_date')->nullable();
+            $table->enum('payment_type', ['cash', 'credit', 'e-wallet', 'transfer_bank'])->default('cash');
+            $table->string('payment_proof_pic')->nullable();
+            $table->enum('status', ['pending', 'paid', 'unpaid', 'cancelled'])->default('[pending]');
             $table->integer('rating')->nullable();
             $table->text('feedback')->nullable();
             $table->timestamps();
@@ -29,6 +28,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        // Schema::dropIfExists('transaction_headers');
+        Schema::dropIfExists('transaction_headers');
     }
 };

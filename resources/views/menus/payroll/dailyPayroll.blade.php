@@ -111,16 +111,52 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">User Management</h3>
-                    <button
-                        class="add-button flex items-center bg-blue-500 text-white font-semibold py-2 px-4 text-sm rounded hover:bg-blue-600 transition duration-200">
-                        <i class="bx bx-plus mr-2"></i> <!-- Menggunakan Boxicons untuk ikon -->
-                        Add User
-                    </button>
+                    <div class="flex">
+                        <h3 class="text-lg font-medium pt-1 mr-3">
+                            Daily Payrolls
+                        </h3>
+                        <!-- Filter and Sort Section -->
+                        <div class="flex pb-4 items-center space-x-4">
+                            <div class="w-px h-6 bg-gray-300"></div>
+                            <div class="flex items-center">
+                                <i class="bx bx-filter text-lg"></i>
+                                <span class="ml-1">Filter</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="bx bx-sort text-lg"></i>
+                                <span class="ml-1">Sort</span>
+                            </div>
+                            <div class="w-px h-6 bg-gray-300"></div>
+                            <button
+                                class="flex items-center text-black-500 py-2 rounded hover:text-blue-600 transition duration-200">
+                                <i class="bx bx-export mr-1"></i>
+                                <span>Export</span>
+                            </button>
+                            <button
+                                class="flex items-center text-black-500 py-2 rounded hover:text-green-600 transition duration-200">
+                                <i class="bx bx-printer mr-1"></i>
+                                <span>Print</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex">
+                        <!-- Search Bar -->
+                        <div class="relative inline-block h-12 w-12 -mr-6">
+                            <input
+                                class="-mr-3 search expandright absolute right-[49px] rounded bg-white border-none h-8 w-0 focus:w-[190px] transition-all duration-400 outline-none z-10 focus:px-4"
+                                id="searchright" type="text" name="q" placeholder="Search">
+                            <label class="z-20 button searchbutton absolute text-[22px] w-full cursor-pointer"
+                                for="searchright">
+                                <span class="-ml-3 inline-block">
+                                    <i class="bx bx-search"></i>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 @if ($dailyPayrolls->isEmpty())
-                    <p>No design request found.</p>
+                    <p>No Daily Payrolls found.</p>
                 @else
                     <table class="min-w-full table-auto">
                         <thead>
@@ -130,7 +166,6 @@
                                 <th class="py-3 px-6 text-left">work_date</th>
                                 <th class="py-3 px-6 text-left">Total Pieces</th>
                                 <th class="py-3 px-6 text-left">Total Pay</th>
-                                <th class="py-3 px-6 text-center text-sm font-bold opacity-60">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -146,18 +181,6 @@
                                     <td class="py-3 px-6 text-left">{{ $dailyPayroll->work_date }}</td>
                                     <td class="py-3 px-6 text-left">{{ $dailyPayroll->total_pieces }}</td>
                                     <td class="py-3 px-6 text-left">{{ $dailyPayroll->daily_total_pay }}</td>
-                                    <td class="py-3 px-6 text-center">
-                                        <div class="flex item-center justify-center">
-                                            <a href="#"
-                                                class="view-button w-4 mr-2 scale-125 opacity-75 transform hover:text-green-500 hover:scale-150 transition duration-75">
-                                                <i class="bx bx-plus-circle"></i>
-                                            </a>
-                                            <a href="#"
-                                                class="view-button w-4 mr-2 scale-125 opacity-75 transform hover:text-red-500 hover:scale-150 transition duration-75">
-                                                <i class="bx bx-x-circle"></i>
-                                            </a>
-                                        </div>
-                                    </td>
                                 </tr>
                                 <tr style="display: none;">
                                     <td colspan="5">
@@ -173,10 +196,9 @@
                                                         Worked</th>
                                                     <th class="py-3 px-6 text-left text-sm font-bold opacity-60">Pay per
                                                         Piece</th> --}}
-                                                    <th class="py-3 px-6 text-left text-sm font-bold opacity-60">Subtotal
+                                                    <th class="py-3 px-6 text-left text-sm font-bold opacity-60">
+                                                        Subtotal
                                                         Pay</th>
-                                                    <th class="py-3 px-6 text-center text-sm font-bold opacity-60">
-                                                        Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -198,31 +220,6 @@
                                                             {{ $detail->pay_per_piece }}</td> --}}
                                                         <td class="py-3 px-6 text-left text-gray-600 text-sm">
                                                             {{ $detail->subtotal_pay }}</td>
-                                                        <td class="py-3 px-6 text-center">
-                                                            <div class="flex item-center justify-center">
-                                                                <a href="#"
-                                                                    class="view-button w-4 mr-2 scale-125 transform hover:text-green-500 hover:scale-150 transition duration-75">
-                                                                    <i class="bx bx-show"></i>
-                                                                </a>
-                                                                @if (auth()->user()->hasRole('admin'))
-                                                                    <a href="#"
-                                                                        class="update-button w-4 mr-2 scale-125 transform hover:text-indigo-500 hover:scale-150 transition duration-75">
-                                                                        {{-- data-user-id="{{ $user->id }}"
-                                                                    data-user-userName="{{ $user->username }}"
-                                                                    data-user-name="{{ $user->name }}"
-                                                                    data-user-email="{{ $user->email }}"
-                                                                    data-user-telepon="{{ $user->contact_info }}"
-                                                                    data-user-address="{{ $user->address }}"> --}} <i class="bx bx-edit"></i>
-                                                                    </a>
-
-                                                                    <a href="#"
-                                                                        class="delete-button w-4 mr-2 scale-125 transform hover:text-red-500 hover:scale-150 transition duration-75">
-                                                                        <i class="bx bx-trash"></i>
-                                                                    </a>
-                                                                @endif
-                                                            </div>
-                                                        </td>
-
                                                     </tr>
                                                 @endforeach
                                             </tbody>

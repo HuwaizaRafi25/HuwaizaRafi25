@@ -108,140 +108,627 @@
                 </li>
             </ol>
         </nav>
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">User Management</h3>
-                    <button
-                        class="add-button flex items-center bg-blue-500 text-white font-semibold py-2 px-4 text-sm rounded hover:bg-blue-600 transition duration-200">
-                        <i class="bx bx-plus mr-2"></i> <!-- Menggunakan Boxicons untuk ikon -->
-                        Add User
+        <div>
+            <div class="flex flex-col ml-8">
+                <div class="flex">
+                    <button id="work" class="ml-1.5 mr-4 text-blue-500 font-semibold">
+                        @if (Auth()->User()->hasRole('admin'))
+                            Unpaid Payroll
+                        @else
+                            My Salary
+                        @endif
+                    </button>
+                    <button id="done" class="mr-4">
+                        @if (Auth()->User()->hasRole('admin'))
+                            Paid Payroll
+                        @else
+                            History Salaries
+                        @endif
                     </button>
                 </div>
+                <!-- Tambahkan hr setelah button pertama -->
+                <hr id="underline" class="ml-1 w-0 border-blue-500 mb-3"
+                    style="border-width: 1.5px; transition: 0.5s ease;">
+            </div>
+            <div id="unpaidPayroll" class="max-w-7xl mx-auto sm:px-6 lg:px-8 transition-all duration-500 opacity-100">
+                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
 
-                @if ($weeklyPayrolls->isEmpty())
-                    <p>No design request found.</p>
-                @else
-                    <table class="min-w-full table-auto">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                                <th class="py-3 px-11 text-left">NO</th>
-                                <th class="py-3 px-6 text-left">Employee</th>
-                                <th class="py-3 px-6 text-left">Week Date Range</th>
-                                <th class="py-3 px-6 text-left">Total Pay</th>
-                                <th class="py-3 px-6 text-left">Paid</th>
-                                <th class="py-3 px-6 text-center text-sm font-bold opacity-60">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($weeklyPayrolls as $weeklyPayroll)
-                                <tr class="border-b border-gray-200 hover:bg-gray-100" data-expense>
-                                    <td class="py-3 px-6 text-left">
-                                        <i class="bx bx-chevron-right cursor-pointer"></i>
-                                        <!-- Tombol chevron di sini -->
-                                        <i class="bx bx-archive mr-3 opacity-50"></i>
-                                        {{ $loop->iteration }}.
-                                    </td>
-                                    <td class="py-3 px-6 text-left">{{ $weeklyPayroll->employee->name }}</td>
-                                    <td class="py-3 px-6 text-left">
-                                        {{ $weeklyPayroll->week_start_date->format('d M Y') }} - {{ $weeklyPayroll->week_end_date->format('d M Y') }}
-                                    </td>
-                                    <td class="py-3 px-6 text-left">{{ $weeklyPayroll->weekly_total_pay }}</td>
-                                    <td class="py-3 px-6 text-left">
-                                        {{ $weeklyPayroll->paid ? 'Paid' : 'Not Paid' }}
-                                    </td>                                                                        <td class="py-3 px-6 text-center">
-                                        <div class="flex item-center justify-center">
-                                            <a href="#"
-                                                class="view-button w-4 mr-2 scale-125 opacity-75 transform hover:text-green-500 hover:scale-150 transition duration-75">
-                                                <i class="bx bx-plus-circle"></i>
-                                            </a>
-                                            <a href="#"
-                                                class="view-button w-4 mr-2 scale-125 opacity-75 transform hover:text-red-500 hover:scale-150 transition duration-75">
-                                                <i class="bx bx-x-circle"></i>
-                                            </a>
-                                        </div>
-                                    </td>
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex">
+                            <h3 class="text-lg font-medium pt-1 mr-3">
+                                @if (Auth()->User()->hasRole('admin'))
+                                    Weekly Payrolls
+                                @else
+                                    My Salary
+                                @endif
+                            </h3>
+                            <!-- Filter and Sort Section -->
+                            <div class="flex pb-4 items-center space-x-4">
+                                <div class="w-px h-6 bg-gray-300"></div>
+                                <div class="flex items-center">
+                                    <i class="bx bx-filter text-lg"></i>
+                                    <span class="ml-1">Filter</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="bx bx-sort text-lg"></i>
+                                    <span class="ml-1">Sort</span>
+                                </div>
+                                <div class="w-px h-6 bg-gray-300"></div>
+                                <button
+                                    class="flex items-center text-black-500 py-2 rounded hover:text-blue-600 transition duration-200">
+                                    <i class="bx bx-export mr-1"></i>
+                                    <span>Export</span>
+                                </button>
+                                <button
+                                    class="flex items-center text-black-500 py-2 rounded hover:text-green-600 transition duration-200">
+                                    <i class="bx bx-printer mr-1"></i>
+                                    <span>Print</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div class="relative inline-block h-12 w-12 ml-4">
+                            <input
+                                class="-mr-3 search expandright absolute right-[49px] rounded bg-white border-none h-8 w-0 focus:w-[240px] transition-all duration-400 outline-none z-10 focus:px-4"
+                                id="searchright" type="text" name="q" placeholder="Search">
+                            <label class="z-20 button searchbutton absolute text-[22px] w-full cursor-pointer"
+                                for="searchright">
+                                <span class="-ml-3 inline-block">
+                                    <i class="bx bx-search"></i>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    @if ($unpaidWeeklyPayrolls->isEmpty())
+                        <p>No design request found.</p>
+                    @else
+                        <table class="min-w-full table-auto">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-11 text-left">NO</th>
+                                    <th class="py-3 px-6 text-left">Employee</th>
+                                    <th class="py-3 px-6 text-left">Week Date Range</th>
+                                    <th class="py-3 px-6 text-left">Total Pay</th>
+                                    <th class="py-3 px-6 text-left">Status</th>
+                                    <th class="py-3 px-6 text-center text-sm font-bold opacity-60">Actions</th>
                                 </tr>
-                                <tr style="display: none;">
-                                    <td colspan="5">
-                                        <table class="nested-table w-full mt-2 ml-12 ">
-                                            <thead>
-                                                <tr class="nested-expense">
-                                                    <th class="py-3 px-6 text-left text-sm font-bold opacity-60">No</th>
-                                                    <th class="py-3 px-6 text-left text-sm font-bold opacity-60">Daily Payroll</th>
-                                                    <th class="py-3 px-6 text-left text-sm font-bold opacity-60">Subtotal
-                                                        Pay</th>
-                                                    <th class="py-3 px-6 text-center text-sm font-bold opacity-60">
-                                                        Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($weeklyPayroll->weeklyPayrollDetail as $detail)
-                                                    <tr class="border-b border-gray-200 hover:bg-gray-100">
-                                                        <td class="py-3 px-6 text-left text-gray-600 text-sm">
-                                                            <ol>
-                                                                <li>{{ chr(97 + $loop->index) }}.</li>
-                                                            </ol>
-                                                        </td>
-                                                        <td class="py-3 px-6 text-left text-gray-600 text-sm">
-                                                            {{ $detail->dailyPayrollHeader->created_at->format('d M Y') }}
-                                                        </td>
-                                                        <td class="py-3 px-6 text-left text-gray-600 text-sm">
-                                                            {{ $detail->subtotal_pay }}</td>
-                                                        <td class="py-3 px-6 text-center">
-                                                            <div class="flex item-center justify-center">
-                                                                <a href="#"
-                                                                    class="view-button w-4 mr-2 scale-125 transform hover:text-green-500 hover:scale-150 transition duration-75">
-                                                                    <i class="bx bx-show"></i>
-                                                                </a>
-                                                                @if (auth()->user()->hasRole('admin'))
-                                                                    <a href="#"
-                                                                        class="update-button w-4 mr-2 scale-125 transform hover:text-indigo-500 hover:scale-150 transition duration-75">
-                                                                        {{-- data-user-id="{{ $user->id }}"
-                                                                    data-user-userName="{{ $user->username }}"
-                                                                    data-user-name="{{ $user->name }}"
-                                                                    data-user-email="{{ $user->email }}"
-                                                                    data-user-telepon="{{ $user->contact_info }}"
-                                                                    data-user-address="{{ $user->address }}"> --}} <i class="bx bx-edit"></i>
-                                                                    </a>
-
-                                                                    <a href="#"
-                                                                        class="delete-button w-4 mr-2 scale-125 transform hover:text-red-500 hover:scale-150 transition duration-75">
-                                                                        <i class="bx bx-trash"></i>
-                                                                    </a>
-                                                                @endif
-                                                            </div>
-                                                        </td>
-
+                            </thead>
+                            <tbody>
+                                @foreach ($unpaidWeeklyPayrolls as $weeklyPayroll)
+                                    <tr class="border-b border-gray-200 hover:bg-gray-100" data-expense>
+                                        <td class="flex-nowrap text-nowrap py-3 px-6 text-left">
+                                            <i class="bx bx-chevron-right cursor-pointer"></i>
+                                            <!-- Tombol chevron di sini -->
+                                            <i class="bx bx-archive mr-3 opacity-50"></i>
+                                            {{ $loop->iteration }}.
+                                        </td>
+                                        <td class="py-3 px-6 text-left">{{ $weeklyPayroll->employee->name }}</td>
+                                        <td class="py-3 px-6 text-left">
+                                            {{ $weeklyPayroll->week_start_date->format('d M Y') }} -
+                                            {{ $weeklyPayroll->week_end_date->format('d M Y') }}
+                                        </td>
+                                        <td class="py-3 px-6 text-left">{{ $weeklyPayroll->weekly_total_pay }}</td>
+                                        <td class="py-3 px-6 text-left">
+                                            {{ $weeklyPayroll->paid ? 'Paid' : 'Unpaid' }}
+                                        </td>
+                                        <td class="py-3 px-6 text-center">
+                                            <div class="flex item-center justify-center">
+                                                <a href="#" data-id="{{ $weeklyPayroll->id }}"
+                                                    data-employeeName="{{ $weeklyPayroll->employee->name }}"
+                                                    data-employeeRole="{{ $weeklyPayroll->employee->roles && $weeklyPayroll->employee->roles->first() ? $weeklyPayroll->employee->roles->first()->name : 'Unset' }}"
+                                                    data-total="{{ 'Rp'.number_format($weeklyPayroll->weekly_total_pay, 0, ',', '.') }}"
+                                                    class="pay-button w-4 mr-2 scale-125 opacity-75 transform hover:text-green-500 hover:scale-150 transition duration-75">
+                                                    <i class="bx bx-money-withdraw"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr style="display: none;">
+                                        <td colspan="5">
+                                            <table class="nested-table w-full mt-2 ml-12 ">
+                                                <thead>
+                                                    <tr class="nested-expense">
+                                                        <th class="py-3 px-6 text-left text-sm font-bold opacity-60">No
+                                                        </th>
+                                                        <th class="py-3 px-6 text-left text-sm font-bold opacity-60">
+                                                            Daily Payroll</th>
+                                                        <th class="py-3 px-6 text-left text-sm font-bold opacity-60">
+                                                            Subtotal
+                                                            Pay</th>
                                                     </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </td>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($weeklyPayroll->weeklyPayrollDetail as $detail)
+                                                        <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                                            <td class="py-3 px-6 text-left text-gray-600 text-sm">
+                                                                <ol>
+                                                                    <li>{{ chr(97 + $loop->index) }}.</li>
+                                                                </ol>
+                                                            </td>
+                                                            <td class="py-3 px-6 text-left text-gray-600 text-sm">
+                                                                {{ $detail->dailyPayrollHeader->created_at->format('d M Y') }}
+                                                            </td>
+                                                            <td class="py-3 px-6 text-left text-gray-600 text-sm">
+                                                                {{ $detail->subtotal_pay }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            </div>
+            <div id="paidPayroll"
+                class="max-w-7xl mx-auto sm:px-6 lg:px-8 transition-all duration-500 opacity-100 hidden">
+                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex">
+                            <h3 class="text-lg font-medium pt-1 mr-3">
+                                @if (Auth()->User()->hasRole('admin'))
+                                    Weekly Payrolls
+                                @else
+                                    History Salary
+                                @endif
+                            </h3>
+                            <!-- Filter and Sort Section -->
+                            <div class="flex pb-4 items-center space-x-4">
+                                <div class="w-px h-6 bg-gray-300"></div>
+                                <div class="flex items-center">
+                                    <i class="bx bx-filter text-lg"></i>
+                                    <span class="ml-1">Filter</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="bx bx-sort text-lg"></i>
+                                    <span class="ml-1">Sort</span>
+                                </div>
+                                <div class="w-px h-6 bg-gray-300"></div>
+                                <button
+                                    class="flex items-center text-black-500 py-2 rounded hover:text-blue-600 transition duration-200">
+                                    <i class="bx bx-export mr-1"></i>
+                                    <span>Export</span>
+                                </button>
+                                <button
+                                    class="flex items-center text-black-500 py-2 rounded hover:text-green-600 transition duration-200">
+                                    <i class="bx bx-printer mr-1"></i>
+                                    <span>Print</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div class="relative inline-block h-12 w-12 ml-4">
+                            <input
+                                class="-mr-3 search expandright absolute right-[49px] rounded bg-white border-none h-8 w-0 focus:w-[240px] transition-all duration-400 outline-none z-10 focus:px-4"
+                                id="searchright" type="text" name="q" placeholder="Search">
+                            <label class="z-20 button searchbutton absolute text-[22px] w-full cursor-pointer"
+                                for="searchright">
+                                <span class="-ml-3 inline-block">
+                                    <i class="bx bx-search"></i>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    @if ($paidWeeklyPayrolls->isEmpty())
+                        <p>No design request found.</p>
+                    @else
+                        <table class="min-w-full table-auto">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                                    <th class="py-3 px-11 text-left">NO</th>
+                                    <th class="py-3 px-6 text-left">Employee</th>
+                                    <th class="py-3 px-6 text-left">Week Date Range</th>
+                                    <th class="py-3 px-6 text-left">Total Paid</th>
+                                    <th class="py-3 px-6 text-left">Status</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                @endif
+                            </thead>
+                            <tbody>
+                                @foreach ($paidWeeklyPayrolls as $weeklyPayroll)
+                                    <tr class="border-b border-gray-200 hover:bg-gray-100" data-expense>
+                                        <td class="py-3 px-6 text-left">
+                                            <i class="bx bx-chevron-right cursor-pointer"></i>
+                                            <!-- Tombol chevron di sini -->
+                                            <i class="bx bx-archive mr-3 opacity-50"></i>
+                                            {{ $loop->iteration }}.
+                                        </td>
+                                        <td class="py-3 px-6 text-left">{{ $weeklyPayroll->employee->name }}</td>
+                                        <td class="py-3 px-6 text-left">
+                                            {{ $weeklyPayroll->week_start_date->format('d M Y') }} -
+                                            {{ $weeklyPayroll->week_end_date->format('d M Y') }}
+                                        </td>
+                                        <td class="py-3 px-6 text-left">{{ $weeklyPayroll->weekly_total_pay }}</td>
+                                        <td class="py-3 px-6 text-left">
+                                            {{ $weeklyPayroll->paid ? 'Paid' : 'Unpaid' }}
+                                        </td>
+                                    </tr>
+                                    <tr style="display: none;">
+                                        <td colspan="5">
+                                            <table class="nested-table w-full mt-2 ml-12 ">
+                                                <thead>
+                                                    <tr class="nested-expense">
+                                                        <th class="py-3 px-6 text-left text-sm font-bold opacity-60">No
+                                                        </th>
+                                                        <th class="py-3 px-6 text-left text-sm font-bold opacity-60">
+                                                            Daily Payroll</th>
+                                                        <th class="py-3 px-6 text-left text-sm font-bold opacity-60">
+                                                            Subtotal
+                                                            Pay</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($weeklyPayroll->weeklyPayrollDetail as $detail)
+                                                        <tr class="border-b border-gray-200 hover:bg-gray-100">
+                                                            <td class="py-3 px-6 text-left text-gray-600 text-sm">
+                                                                <ol>
+                                                                    <li>{{ chr(97 + $loop->index) }}.</li>
+                                                                </ol>
+                                                            </td>
+                                                            <td class="py-3 px-6 text-left text-gray-600 text-sm">
+                                                                {{ $detail->dailyPayrollHeader->created_at->format('d M Y') }}
+                                                            </td>
+                                                            <td class="py-3 px-6 text-left text-gray-600 text-sm">
+                                                                {{ $detail->subtotal_pay }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
+
+    {{-- Modal Pay Salary --}}
+    <div id="payModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-4xl w-auto h-auto">
+            <div class="flex items-center justify-between">
+                <i id="closeWorkModal"
+                    class="bx bx-arrow-back scale-125 font-extrabold mb-4 cursor-pointer hover:scale-150"></i>
+                <h2 class="text-xl font-bold mb-4 pr-4 mx-auto">Salary Payment</h2>
+            </div>
+            <form id="workForm" action="{{ route('weeklypayroll.pay') }}" method="POST"
+                enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="weeklyHeaderId">
+                <div class="request-container" style="max-height: 86vh">
+                    <div class="flex p-3 pb-5" id="request-1">
+                        <img id="requestPic" src="{{ asset('assets/images/webcam-toy-photo2 (1).jpg') }}"
+                            alt="User Profile" class="w-48 h-48 mr-3 rounded-2xl object-cover">
+                        <div class="p-3">
+                            <div class="w-full">
+                                <label for="employeeName" class="text-gray-700 font-normal text-sm">Employee Name :
+                                </label>
+                                <p id="employeeName" class="text-black text-lg font-semibold">Huwa Keren</p>
+                                <hr>
+                            </div>
+                            <div class="w-full">
+                                <label for="employeeRole" class="text-gray-700 font-normal text-sm">Employee Role :
+                                </label>
+                                <p id="employeeRole" class="text-black text-lg font-semibold">Designer</p>
+                                <hr>
+                            </div>
+                            <div class="w-full">
+                                <label for="requestDesc" class="text-gray-700 font-normal text-sm">Payroll :</label>
+                                <div class="max-h-64 overflow-y-scroll">
+                                    <table class="w-full text-left my-1 max-h-4 overflow-y-scroll">
+                                        <tbody>
+                                            <tr class="border-b">
+                                                <td class="px-2 py-1 text-gray-600"><i
+                                                        class="bx bx-chevron-right scale-150 mr-2 cursor-pointer"></i><i
+                                                        class="bx bx-spreadsheet scale-150"></i></td>
+                                                <td class="text-black text-lg font-normal">Sunday</td>
+                                                <td class="text-black text-lg font-light pl-6" id="dateSunday">1 Nov,
+                                                    2024</td>
+                                                <td class="text-black text-lg font-semibold pl-6" id="subtotalSunday">
+                                                    Rp100.000,00</td>
+                                            </tr>
+                                            <tr style="display: none">
+                                                <td colspan="3" class="px-4 py-2">
+                                                    <div class="flex flex-col">
+                                                        <div id="">
+                                                            <div class="flex text-gray-700 text-sm my-1">
+                                                                <div class="flex">
+                                                                    <div class="flex items-center">
+                                                                        <span class="font-semibold mr-2">1)</span>
+                                                                    </div>
+                                                                    <div class="flex flex-col">
+                                                                        <span class="font-semibold mr-2">Request</span>
+                                                                        <span class="font-semibold mr-2">Pay/Pcs</span>
+                                                                        <span class="font-semibold mr-2">Qty</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="flex flex-col">
+                                                                    <span>: Logo blablabla</span>
+                                                                    <span>: Rp10.000</span>
+                                                                    <span>: 10 Pcs</span>
+                                                                </div>
+                                                            </div>
+                                                            <hr class="w-60">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b">
+                                                <td class="px-2 py-1 text-gray-600"><i
+                                                        class="bx bx-chevron-right scale-150 mr-2 cursor-pointer"></i><i
+                                                        class="bx bx-spreadsheet scale-150"></i></td>
+                                                <td class="text-black text-lg font-normal">Monday</td>
+                                                <td class="text-black text-lg font-light pl-6" id="dateMonday">2 Nov,
+                                                    2024</td>
+                                                <td class="text-black text-lg font-semibold pl-6" id="subtotalMonday">
+                                                    Rp100.000,00</td>
+                                            </tr>
+                                            <tr style="display: none">
+                                                <td colspan="3" class="px-4 py-2">
+                                                    <div class="flex flex-col">
+                                                        <div id="">
+                                                            <div class="flex text-gray-700 text-sm my-1">
+                                                                <div class="flex">
+                                                                    <div class="flex items-center">
+                                                                        <span class="font-semibold mr-2">1)</span>
+                                                                    </div>
+                                                                    <div class="flex flex-col">
+                                                                        <span class="font-semibold mr-2">Request</span>
+                                                                        <span class="font-semibold mr-2">Pay/Pcs</span>
+                                                                        <span class="font-semibold mr-2">Qty</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="flex flex-col">
+                                                                    <span>: Logo blablabla</span>
+                                                                    <span>: Rp10.000</span>
+                                                                    <span>: 10 Pcs</span>
+                                                                </div>
+                                                            </div>
+                                                            <hr class="w-60">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b">
+                                                <td class="px-2 py-1 text-gray-600"><i
+                                                        class="bx bx-chevron-right scale-150 mr-2 cursor-pointer"></i><i
+                                                        class="bx bx-spreadsheet scale-150"></i></td>
+                                                <td class="text-black text-lg font-normal">Tuesday</td>
+                                                <td class="text-black text-lg font-light pl-6" id="dateTuesday">3 Nov,
+                                                    2024</td>
+                                                <td class="text-black text-lg font-semibold pl-6"
+                                                    id="subtotalTuesday">Rp100.000,00</td>
+                                            </tr>
+                                            <tr style="display: none">
+                                                <td colspan="3" class="px-4 py-2">
+                                                    <div class="flex flex-col">
+                                                        <div id="">
+                                                            <div class="flex text-gray-700 text-sm my-1">
+                                                                <div class="flex">
+                                                                    <div class="flex items-center">
+                                                                        <span class="font-semibold mr-2">1)</span>
+                                                                    </div>
+                                                                    <div class="flex flex-col">
+                                                                        <span class="font-semibold mr-2">Request</span>
+                                                                        <span class="font-semibold mr-2">Pay/Pcs</span>
+                                                                        <span class="font-semibold mr-2">Qty</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="flex flex-col">
+                                                                    <span>: Logo blablabla</span>
+                                                                    <span>: Rp10.000</span>
+                                                                    <span>: 10 Pcs</span>
+                                                                </div>
+                                                            </div>
+                                                            <hr class="w-60">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b">
+                                                <td class="px-2 py-1 text-gray-600"><i
+                                                        class="bx bx-chevron-right scale-150 mr-2 cursor-pointer"></i><i
+                                                        class="bx bx-spreadsheet scale-150"></i></td>
+                                                <td class="text-black text-lg font-normal">Wednesday</td>
+                                                <td class="text-black text-lg font-light pl-6" id="dateWednesday">4
+                                                    Nov, 2024</td>
+                                                <td class="text-black text-lg font-semibold pl-6"
+                                                    id="subtotalWednesday">Rp100.000,00</td>
+                                            </tr>
+                                            <tr style="display: none">
+                                                <td colspan="3" class="px-4 py-2">
+                                                    <div class="flex flex-col">
+                                                        <div id="">
+                                                            <div class="flex text-gray-700 text-sm my-1">
+                                                                <div class="flex">
+                                                                    <div class="flex items-center">
+                                                                        <span class="font-semibold mr-2">1)</span>
+                                                                    </div>
+                                                                    <div class="flex flex-col">
+                                                                        <span class="font-semibold mr-2">Request</span>
+                                                                        <span class="font-semibold mr-2">Pay/Pcs</span>
+                                                                        <span class="font-semibold mr-2">Qty</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="flex flex-col">
+                                                                    <span>: Logo blablabla</span>
+                                                                    <span>: Rp10.000</span>
+                                                                    <span>: 10 Pcs</span>
+                                                                </div>
+                                                            </div>
+                                                            <hr class="w-60">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b">
+                                                <td class="px-2 py-1 text-gray-600"><i
+                                                        class="bx bx-chevron-right scale-150 mr-2 cursor-pointer"></i><i
+                                                        class="bx bx-spreadsheet scale-150"></i></td>
+                                                <td class="text-black text-lg font-normal">Thursday</td>
+                                                <td class="text-black text-lg font-light pl-6" id="dateThursday">5
+                                                    Nov, 2024</td>
+                                                <td class="text-black text-lg font-semibold pl-6"
+                                                    id="subtotalThursday">Rp100.000,00</td>
+                                            </tr>
+                                            <tr style="display: none">
+                                                <td colspan="3" class="px-4 py-2">
+                                                    <div class="flex flex-col">
+                                                        <div id="">
+                                                            <div class="flex text-gray-700 text-sm my-1">
+                                                                <div class="flex">
+                                                                    <div class="flex items-center">
+                                                                        <span class="font-semibold mr-2">1)</span>
+                                                                    </div>
+                                                                    <div class="flex flex-col">
+                                                                        <span class="font-semibold mr-2">Request</span>
+                                                                        <span class="font-semibold mr-2">Pay/Pcs</span>
+                                                                        <span class="font-semibold mr-2">Qty</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="flex flex-col">
+                                                                    <span>: Logo blablabla</span>
+                                                                    <span>: Rp10.000</span>
+                                                                    <span>: 10 Pcs</span>
+                                                                </div>
+                                                            </div>
+                                                            <hr class="w-60">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b">
+                                                <td class="px-2 py-1 text-gray-600"><i
+                                                        class="bx bx-chevron-right scale-150 mr-2 cursor-pointer"></i><i
+                                                        class="bx bx-spreadsheet scale-150"></i></td>
+                                                <td class="text-black text-lg font-normal">Friday</td>
+                                                <td class="text-black text-lg font-light pl-6" id="dateFriday">6 Nov,
+                                                    2024</td>
+                                                <td class="text-black text-lg font-semibold pl-6" id="subtotalFriday">
+                                                    Rp100.000,00</td>
+                                            </tr>
+                                            <tr style="display: none">
+                                                <td colspan="3" class="px-4 py-2">
+                                                    <div class="flex flex-col">
+                                                        <div id="">
+                                                            <div class="flex text-gray-700 text-sm my-1">
+                                                                <div class="flex">
+                                                                    <div class="flex items-center">
+                                                                        <span class="font-semibold mr-2">1)</span>
+                                                                    </div>
+                                                                    <div class="flex flex-col">
+                                                                        <span class="font-semibold mr-2">Request</span>
+                                                                        <span class="font-semibold mr-2">Pay/Pcs</span>
+                                                                        <span class="font-semibold mr-2">Qty</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="flex flex-col">
+                                                                    <span>: Logo blablabla</span>
+                                                                    <span>: Rp10.000</span>
+                                                                    <span>: 10 Pcs</span>
+                                                                </div>
+                                                            </div>
+                                                            <hr class="w-60">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="border-b">
+                                                <td class="px-2 py-1 text-gray-600"><i
+                                                        class="bx bx-chevron-right scale-150 mr-2 cursor-pointer"></i><i
+                                                        class="bx bx-spreadsheet scale-150"></i></td>
+                                                <td class="text-black text-lg font-normal">Saturday</td>
+                                                <td class="text-black text-lg font-light pl-6" id="dateSaturday">7
+                                                    Nov, 2024</td>
+                                                <td class="text-black text-lg font-semibold pl-6"
+                                                    id="subtotalSaturday">Rp100.000,00</td>
+                                            </tr>
+                                            <tr style="display: none">
+                                                <td colspan="3" class="px-4 py-2">
+                                                    <div class="flex flex-col">
+                                                        <div id="">
+                                                            <div class="flex text-gray-700 text-sm my-1">
+                                                                <div class="flex">
+                                                                    <div class="flex items-center">
+                                                                        <span class="font-semibold mr-2">1)</span>
+                                                                    </div>
+                                                                    <div class="flex flex-col">
+                                                                        <span class="font-semibold mr-2">Request</span>
+                                                                        <span class="font-semibold mr-2">Pay/Pcs</span>
+                                                                        <span class="font-semibold mr-2">Qty</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="flex flex-col">
+                                                                    <span>: Logo blablabla</span>
+                                                                    <span>: Rp10.000</span>
+                                                                    <span>: 10 Pcs</span>
+                                                                </div>
+                                                            </div>
+                                                            <hr class="w-60">
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="w-full my-1">
+                                <label for="totalSalary" class="text-gray-700 font-normal text-sm">Total Salary :
+                                </label>
+                                <p id="totalSalary" class="text-black text-lg font-semibold">Rp700.000,00
+                                </p>
+                                <hr>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end mt-6">
+                    <button type="submit"
+                        class="bg-blue-500 text-white font-bold py-2 px-6 rounded hover:bg-blue-600 transition duration-200">Pay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <script>
+        document.querySelectorAll('.bx-chevron-right').forEach(chevron => {
+            chevron.addEventListener('click', function() {
+                const nextRow = this.closest('tr').nextElementSibling;
+
+                if (nextRow.style.display === 'none' || !nextRow.style.display) {
+                    nextRow.style.display = 'table-row';
+                    this.classList.replace('bx-chevron-right',
+                        'bx-chevron-down');
+                } else {
+                    nextRow.style.display = 'none';
+                    this.classList.replace('bx-chevron-down',
+                        'bx-chevron-right');
+                }
+            });
+        });
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Menangkap semua baris yang berisi data expense
             const rows = document.querySelectorAll('tr[data-expense]');
 
-            // Menambahkan event listener untuk setiap baris
             rows.forEach(row => {
                 const arrowIcon = row.querySelector('.bx');
+                const viewButton = row.querySelector('.pay-button');
 
                 row.addEventListener('click', function() {
                     const nestedTable = this
-                        .nextElementSibling; // Mengambil elemen berikutnya (tabel nested)
+                        .nextElementSibling;
 
-                    // Toggle visibilitas tabel nested
                     if (nestedTable.style.display === "table-row") {
                         nestedTable.style.display = "none";
                         arrowIcon.classList.remove('bx-chevron-down');
@@ -252,391 +739,152 @@
                         arrowIcon.classList.add('bx-chevron-down');
                     }
                 });
+                viewButton.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    console.log('Payment button clicked');
+                });
             });
         });
     </script>
     <script>
-        console.log(localStorage.getItem('data-navLink-id'));
+        document.addEventListener('DOMContentLoaded', function() {
+            const underLine = document.getElementById('underline');
+            const workButton = document.getElementById('work');
+            const doneButton = document.getElementById('done');
+            const workTable = document.getElementById('unpaidPayroll');
+            const doneTable = document.getElementById('paidPayroll');
+
+            function setActiveButton(activeButton, inactiveButton) {
+                activeButton.classList.add('text-blue-500', 'font-semibold');
+                inactiveButton.classList.remove('text-blue-500', 'font-semibold');
+
+                const activeButtonRect = activeButton.getBoundingClientRect();
+                underLine.style.width = `${activeButtonRect.width}px`;
+                underLine.style.marginLeft =
+                    `${activeButtonRect.left - workButton.getBoundingClientRect().left + 3}px`;
+            }
+
+            function switchTables(showTable, hideTable) {
+                hideTable.style.opacity = '0';
+                hideTable.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    hideTable.classList.add('hidden');
+                    showTable.classList.remove('hidden');
+
+                    void showTable.offsetWidth;
+
+                    showTable.style.opacity = '1';
+                    showTable.style.transform = 'translateY(0)';
+                }, 300);
+            }
+
+            doneButton.addEventListener('click', function() {
+                setActiveButton(doneButton, workButton);
+                switchTables(doneTable, workTable);
+            });
+
+            workButton.addEventListener('click', function() {
+                setActiveButton(workButton, doneButton);
+                switchTables(workTable, doneTable);
+            });
+
+            setActiveButton(workButton, doneButton);
+        });
     </script>
 
-    {{-- <!-- Modal View -->
-    <div id="userModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
-            <div class="flex items-center justify-between">
-                <i id="closeModal"
-                    class="bx bx-arrow-back scale-125 font-extrabold mb-4 ml-1 cursor-pointer hover:scale-150"></i>
-                <h2 class="text-xl font-bold mb-4 pr-4 mx-auto underline">User Details</h2>
-            </div>
-            <div class="flex justify-center">
-                <img id="userProfileImage" src="" alt="User Profile"
-                    class="w-32 h-32 rounded-full object-cover cursor-pointer">
-            </div>
-            <div id="imageOverlay" class="fixed inset-0 bg-black bg-opacity-75 items-center justify-center hidden">
-                <img id="fullScreenImage" class="full-screen-image" src="" alt="Full Screen User Profile">
-            </div>
-            <div class="flex flex-col items-center mb-4 mt-2">
-                <h3 id="userName" class="text-lg font-semibold"></h3>
-                <p class="text-gray-600">Admin</p>
-            </div>
-            <hr>
-            <div class="my-4">
-
-                <p class="text-gray-600 font-light text-sm"><i class="bx bx-envelope mr-2 scale-110 pt-3"></i>Email
-                    Address:</p>
-                <a href="mailto:huwaiza137@gmail.com" class="flex hover:text-blue-500" target="_blank">
-                    <p id="userEmail" class="text-base font-medium mb-2 transition duration-75 cursor-pointer"></p><i
-                        class="bx bx-link-alt ml-1 pt-1"></i>
-                </a>
-                <p class="text-gray-600 font-light text-sm"><i class="bx bx-phone mr-2 scale-110 pt-3"></i>Contact
-                    Address:</p>
-                <a href="https://wa.me/08815184624" class="flex hover:text-blue-500" target="_blank">
-                    <p id="userContacts" class="text-base font-medium mb-2 transition duration-75 cursor-pointer"></p>
-                    <i class="bx bx-link-alt ml-1 pt-1"></i>
-                </a>
-                <p class="text-gray-600 font-light text-sm"><i class="bx bx-map mr-2 scale-110 pt-3"></i>Address:</p>
-                <a href="https://maps.app.goo.gl/5kFdZUb2p61mVekN7" class="flex hover:text-blue-500" target="_blank">
-                    <p id="userAddress" class="text-base font-medium mb-2 transition duration-75 cursor-pointer"></p>
-                    <i class="bx bx-link-alt ml-1 pt-1"></i>
-                </a>
-            </div>
-        </div>
-    </div> --}}
-
-    <!-- Modal Add Expenses -->
-    {{-- <div id="addModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full">
-            <div class="flex items-center justify-between">
-                <i id="closeAddModal"
-                    class="bx bx-arrow-back scale-125 font-extrabold mb-4 cursor-pointer hover:scale-150"></i>
-                <h2 class="text-xl font-bold mb-4 pr-4 mx-auto underline">Add New Expense</h2>
-            </div>
-            <form id="addExpenseForm" action="{{ route('expenses.store') }}" method="POST"
-                enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
-                <!-- Item Name -->
-                <div class="mb-4">
-                    <label for="item_name" class="text-gray-600 font-light text-sm">Item Name</label>
-                    <input type="text" name="item_name" id="item_name" placeholder="Enter Item Name"
-                        class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                </div>
-
-                <!-- Amount -->
-                <div class="mb-4">
-                    <label for="amount" class="text-gray-600 font-light text-sm">Amount</label>
-                    <input type="number" name="amount" id="amount" placeholder="Enter Amount"
-                        class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                </div>
-
-                <!-- Date -->
-                <div class="mb-4">
-                    <label for="date" class="text-gray-600 font-light text-sm">Date</label>
-                    <input type="date" name="date" id="date" placeholder="Enter Date"
-                        class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                </div>
-
-                <!-- Description -->
-                <div class="mb-4">
-                    <label for="description" class="text-gray-600 font-light text-sm">Description</label>
-                    <textarea name="description" id="description" placeholder="Enter Description"
-                        class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required></textarea>
-                </div>
-
-                <!-- Submit Button -->
-                <div class="flex justify-end mt-6">
-                    <button type="submit"
-                        class="bg-blue-500 text-white font-bold py-2 px-6 rounded hover:bg-blue-600 transition duration-200">
-                        Add Expense
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div> --}}
-
-    <!-- Modal Edit Expenses -->
-    {{-- <div id="updateModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full">
-            <div class="flex items-center justify-between">
-                <i id="closeUpdateModal"
-                    class="bx bx-arrow-back scale-125 font-extrabold mb-4 cursor-pointer hover:scale-150"></i>
-                <h2 class="text-xl font-bold mb-4 pr-4 mx-auto underline">Update Expense</h2>
-            </div>
-            <form id="updateExpenseForm" action="{{ route('expenses.update', $expense->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-                <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
-                <input type="hidden" name="expense_id" id="expense_id" value="{{ $expense->id }}">
-
-                <!-- Expense Name -->
-                <div class="mb-4">
-                    <label for="expense_name" class="text-gray-600 font-light text-sm">Expense Name</label>
-                    <input type="text" name="expense_name" id="expense_name" placeholder="Enter Expense Name"
-                        value="{{ $expense->expense_name }}"
-                        class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                </div>
-
-                <!-- Expense Amount -->
-                <div class="mb-4">
-                    <label for="amount" class="text-gray-600 font-light text-sm">Amount</label>
-                    <input type="number" name="amount" id="amount" placeholder="Enter Amount"
-                        value="{{ $expense->amount }}"
-                        class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                </div>
-
-                <!-- Expense Date -->
-                <div class="mb-4">
-                    <label for="expense_date" class="text-gray-600 font-light text-sm">Date</label>
-                    <input type="date" name="expense_date" id="expense_date"
-                        value="{{ $expense->expense_date }}"
-                        class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                </div>
-
-                <!-- Expense Description -->
-                <div class="mb-4">
-                    <label for="description" class="text-gray-600 font-light text-sm">Description</label>
-                    <textarea name="description" id="description" rows="3" placeholder="Enter Description"
-                        class="w-full border rounded p-2 focus:outline-none focus:border-blue-500">{{ $expense->description }}</textarea>
-                </div>
-
-                <div class="flex justify-end mt-6">
-                    <button type="submit"
-                        class="bg-blue-500 text-white font-bold py-2 px-6 rounded hover:bg-blue-600 transition duration-200">
-                        Update Expense
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div> --}}
-
-    <!-- Modal Delete -->
-    {{-- <div id="deleteModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold text-red-600 underline">Confirm Deletion</h2>
-            </div>
-            <p class="text-gray-700 mt-4">Are you sure you want to delete this item? This action cannot be undone.</p>
-            <div class="mt-6 flex justify-end">
-                <button id="cancelDelete" class="bg-gray-300 text-gray-700 py-2 px-4 rounded mr-2 hover:bg-gray-400">
-                    Cancel
-                </button>
-                <button id="confirmDelete" class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
-                    Delete
-                </button>
-            </div>
-        </div>
-    </div> --}}
-
-    {{-- Script Modal Delete --}}
-    {{-- <script>
+    {{-- Script Pay Weekly Payroll --}}
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const deleteButtons = document.querySelectorAll('.delete-button');
-            const deleteModal = document.getElementById('deleteModal');
-            const cancelDelete = document.getElementById('cancelDelete');
-            const confirmDelete = document.getElementById('confirmDelete');
-            let userId; // Declare userId outside
+            const approveButtons = document.querySelectorAll('.pay-button');
+            const payModal = document.getElementById('payModal');
+            const closeWorkModal = document.getElementById('closeWorkModal');
+            const workForm = document.getElementById('workForm');
 
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const row = this.closest('tr'); // Get the closest tr
-                    userId = row.getAttribute('data-id'); // Set userId from data-id
-                    deleteModal.classList.add('show'); // Show the modal
+            const resetDates = () => {
+                const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                days.forEach(day => {
+                    const dateElement = document.getElementById(`date${day}`);
+                    if (dateElement) {
+                        dateElement.textContent = 'd M, Y';
+                    }
                 });
-            });
+            };
 
-            cancelDelete.addEventListener('click', function() {
-                deleteModal.classList.remove('show'); // Hide the modal
-            });
+            approveButtons.forEach(button => {
+                button.addEventListener('click', async function() {
+                    try {
+                        const weeklyHeaderId = this.getAttribute('data-id');
+                        if (!weeklyHeaderId) {
+                            throw new Error('Weekly header ID is missing');
+                        }
+                        const employeeName = this.getAttribute('data-employeeName');
+                        const employeeRole = this.getAttribute('data-employeeRole');
+                        const total = this.getAttribute('data-total');
 
-            confirmDelete.addEventListener('click', function() {
-                if (userId) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `/users/${userId}`; // Use the userId
+                        workForm.querySelector('#employeeName').textContent = employeeName;
+                        workForm.querySelector('#employeeRole').textContent = employeeRole;
+                        workForm.querySelector('#totalSalary').textContent = total;
 
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = '{{ csrf_token() }}';
+                        resetDates();
 
-                    const methodInput = document.createElement('input');
-                    methodInput.type = 'hidden';
-                    methodInput.name = '_method';
-                    methodInput.value = 'DELETE';
+                        payModal.classList.remove('hidden');
+                        payModal.classList.add('flex');
 
-                    form.appendChild(csrfInput);
-                    form.appendChild(methodInput);
-                    document.body.appendChild(form);
-                    form.submit(); // Submit the form
-                }
-                deleteModal.classList.remove('show'); // Hide the modal
-            });
-        });
-    </script> --}}
+                        const response = await fetch(
+                            `/payroll/weekly-payroll/getSalary/${weeklyHeaderId}`);
 
-    {{-- Script Modal View --}}
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Cari semua elemen dengan kelas 'view-button'
-            document.querySelectorAll('.view-button').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('keklik bang')
-                    const row = this.closest('tr');
-                    if (row) {
-                        const userProfileImage = row.getAttribute('data-profile-image');
-                        const userName = row.getAttribute('data-name');
-                        const userEmail = row.getAttribute('data-email');
-                        const userContacts = row.getAttribute('data-contacts');
-                        const userAddress = row.getAttribute('data-address');
-
-                        // Update gambar profil
-                        if (userProfileImage) {
-                            const imageUrl = "{{ asset('') }}" + userProfileImage;
-                            document.getElementById('userProfileImage').src = imageUrl;
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
                         }
 
-                        // Update data user di modal
-                        document.getElementById('userName').innerText = userName || 'N/A';
-                        document.getElementById('userEmail').innerText = userEmail || 'N/A';
-                        document.getElementById('userContacts').innerText = userContacts || 'N/A';
-                        document.getElementById('userAddress').innerText = userAddress || 'N/A';
-                    } else {
-                        console.error("Baris tidak ditemukan!");
-                    }
+                        const result = await response.json();
 
-                    // Tampilkan modal
-                    const userModal = document.getElementById('userModal');
-                    console.log(
-                        userModal); // Tambahkan log untuk memeriksa apakah userModal ditemukan
-                    if (userModal) {
-                        userModal.classList.add('show'); // Tambahkan class show
-                    } else {
-                        console.error("Element with ID 'userModal' not found!");
+                        if (result.status === 'success') {
+                            const {
+                                dates
+                            } = result.data;
+
+                            Object.entries(dates).forEach(([day, dateInfo]) => {
+                                const dateElement = document.getElementById(
+                                    `date${day}`);
+                                const subtotalPayElement = document.getElementById(
+                                    `subtotal${day}`);
+
+                                if (dateElement) {
+                                    dateElement.textContent = dateInfo.formatted_date;
+                                }
+
+                                if (subtotalPayElement) {
+                                    subtotalPayElement.textContent = dateInfo.subtotal_pay !== null ? dateInfo.subtotal_pay : 0;
+                                }
+                            });
+                        } else {
+                            throw new Error(result.message || 'Failed to retrieve dates');
+                        }
+
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert(error.message);
+                        payModal.classList.add('hidden');
+                        payModal.classList.remove('flex');
                     }
                 });
             });
 
-            // Menutup modal
-            const closeModalButton = document.getElementById('closeModal');
-            if (closeModalButton) {
-                closeModalButton.addEventListener('click', function() {
-                    const userModal = document.getElementById('userModal');
-                    console.log(
-                        userModal
-                    ); // Tambahkan log untuk memeriksa apakah userModal ditemukan saat mencoba menutup modal
-                    if (userModal) {
-                        userModal.classList.remove('show'); // Hapus class show
-                    } else {
-                        console.error("Element with ID 'userModal' not found!");
-                    }
-                });
-            } else {
-                console.error("Element with ID 'closeModal' not found!");
-            }
-        });
-    </script> --}}
-
-    {{-- Script Modal Edit --}}
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const updateButtons = document.querySelectorAll('.update-expense-button');
-            const updateModal = document.getElementById('updateModal');
-            const closeModal = document.getElementById('closeUpdateModal');
-            const updateExpenseForm = document.getElementById('updateExpenseForm');
-
-            // Menampilkan modal saat tombol "update Expense" diklik
-            updateButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const expenseId = this.getAttribute('data-expense-id');
-                    const expenseName = this.getAttribute('data-expense-name');
-                    const expenseAmount = this.getAttribute('data-expense-amount');
-                    const expenseDate = this.getAttribute('data-expense-date');
-                    const expenseDescription = this.getAttribute('data-expense-description');
-
-                    // Mengisi form di modal dengan data expense
-                    updateExpenseForm.action = `/expenses/${expenseId}`;
-                    updateExpenseForm.querySelector('input[name="expense_name"]').value =
-                        expenseName;
-                    updateExpenseForm.querySelector('input[name="amount"]').value = expenseAmount;
-                    updateExpenseForm.querySelector('input[name="expense_date"]').value =
-                        expenseDate;
-                    updateExpenseForm.querySelector('textarea[name="description"]').value =
-                        expenseDescription;
-
-                    // Tampilkan modal
-                    updateModal.classList.remove('hidden');
-                    updateModal.classList.add('flex');
-                });
+            closeWorkModal.addEventListener('click', () => {
+                payModal.classList.add('hidden');
+                payModal.classList.remove('flex');
             });
 
-            // Menutup modal saat tombol "Close" diklik
-            closeModal.addEventListener('click', function() {
-                updateModal.classList.add('hidden');
-                updateModal.classList.remove('flex');
-            });
-
-            // Menutup modal saat area di luar modal diklik
-            updateModal.addEventListener('click', function(e) {
-                if (e.target === updateModal) {
-                    updateModal.classList.add('hidden');
-                    updateModal.classList.remove('flex');
+            payModal.addEventListener('click', (e) => {
+                if (e.target === payModal) {
+                    payModal.classList.add('hidden');
+                    payModal.classList.remove('flex');
                 }
             });
         });
-    </script> --}}
-
-    {{-- Script Modal Add --}}
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Mendapatkan elemen-elemen yang dibutuhkan
-            const addButton = document.querySelectorAll('.add-button');
-            const addModal = document.getElementById('addModal');
-            const closeModal = document.getElementById('closeAddModal');
-            const addUserForm = document.getElementById('addUserForm');
-
-            // Menampilkan modal saat tombol "add User" diklik
-            addButton.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Tampilkan modal
-                    addModal.classList.remove('hidden');
-                    addModal.classList.add('flex'); // Menggunakan 'flex' untuk menampilkan modal
-                });
-            });
-
-            // Menutup modal saat tombol "Close" diklik
-            closeModal.addEventListener('click', function() {
-                addModal.classList.add('hidden');
-                addModal.classList.remove('flex');
-            });
-
-            // Menutup modal saat area di luar modal diklik
-            addModal.addEventListener('click', function(e) {
-                if (e.target === addModal) {
-                    addModal.classList.add('hidden');
-                    addModal.classList.remove('flex');
-                }
-            });
-        });
-    </script> --}}
-
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const userProfileImage = document.getElementById('userProfileImage');
-            const fullScreenImage = document.getElementById('fullScreenImage');
-            const imageOverlay = document.getElementById('imageOverlay');
-
-            userProfileImage.addEventListener('click', function() {
-                fullScreenImage.src = this.src;
-                imageOverlay.style.display = 'flex'; // Tampilkan overlay
-            });
-
-            imageOverlay.addEventListener('click', function() {
-                imageOverlay.style.display = 'none'; // Sembunyikan overlay saat diklik
-            });
-        });
-    </script> --}}
-
-
+    </script>
 
 </x-app-layout>

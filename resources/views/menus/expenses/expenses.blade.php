@@ -110,14 +110,6 @@
         </nav>
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                {{-- <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold">User Management</h3>
-                    <button
-                        class="add-button flex items-center bg-blue-500 text-white font-semibold py-2 px-4 text-sm rounded hover:bg-blue-600 transition duration-200">
-                        <i class="bx bx-plus mr-2"></i> <!-- Menggunakan Boxicons untuk ikon -->
-                        Add Expense
-                    </button>
-                </div> --}}
                 <div class="flex justify-between items-center mb-4">
                     <div class="flex">
                         <h3 class="text-lg font-medium pt-1 mr-3">
@@ -177,8 +169,7 @@
                                 <th class="py-3 px-11 text-left">NO</th>
                                 <th class="py-3 px-6 text-left">Total_amount</th>
                                 <th class="py-3 px-6 text-left">description</th>
-                                <th class="py-3 px-6 text-left">Created By</th>
-                                <th class="py-3 px-6 text-center text-sm font-bold opacity-60">Actions</th>
+                                <th class="py-3 px-6 text-left">Details</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -195,20 +186,19 @@
                                     </td>
                                     <td class="py-3 px-6 text-left">{{ $expense->description }}</td>
                                     <td class="py-3 px-6 text-left">
+                                        <p class="text-gray-600 font-light">Created by :</p>
                                         {{ $expense->createdBy->name }}
+                                        <p class="text-gray-600 font-light">Created at :</p>
+                                        {{ $expense->created_at->format('d M, Y') }}
                                     </td>
-                                    <td class="py-3 px-6 text-center">
+                                    {{-- <td class="py-3 px-6 text-center">
                                         <div class="flex item-center justify-center">
                                             <a href="#"
-                                                class="view-button w-4 mr-2 scale-125 opacity-75 transform hover:text-green-500 hover:scale-150 transition duration-75">
-                                                <i class="bx bx-plus-circle"></i>
-                                            </a>
-                                            <a href="#"
-                                                class="view-button w-4 mr-2 scale-125 opacity-75 transform hover:text-red-500 hover:scale-150 transition duration-75">
+                                                class="trashAllExpenses-button w-4 mr-2 scale-125 opacity-75 transform hover:text-red-500 hover:scale-150 transition duration-75">
                                                 <i class="bx bx-x-circle"></i>
                                             </a>
                                         </div>
-                                    </td>
+                                    </td> --}}
                                 </tr>
                                 <tr style="display: none;">
                                     <td colspan="5">
@@ -220,6 +210,8 @@
                                                         Item Name</th>
                                                     <th class="py-3 px-6 text-left text-sm font-bold opacity-60">
                                                         Amount</th>
+                                                    <th class="py-3text-center text-sm font-bold opacity-60">
+                                                        Status</th>
                                                     <th class="py-3 px-6 text-center text-sm font-bold opacity-60">
                                                         Actions</th>
                                                 </tr>
@@ -229,36 +221,55 @@
                                                     <tr class="border-b border-gray-200 hover:bg-gray-100">
                                                         <td class="py-3 px-6 text-left text-gray-600 text-sm">
                                                             <ol>
-                                                                <li>{{ chr(97 + $loop->index) }}.</li>
+                                                                @if ($item->status == 'active')
+                                                                    <li>{{ chr(97 + $loop->index) }}.</li>
+                                                                @else
+                                                                    <li class="line-through">
+                                                                        {{ chr(97 + $loop->index) }}.</li>
+                                                                @endif
                                                             </ol>
                                                         </td>
                                                         <td class="py-3 px-6 text-left text-gray-600 text-sm">
-                                                            {{ $item->item_name }}</td>
+                                                            @if ($item->status == 'active')
+                                                                {{ $item->item_name }}
+                                                            @else
+                                                                <p class="line-through"> {{ $item->item_name }}</p>
+                                                            @endif
+                                                        </td>
                                                         <td class="py-3 px-6 text-left text-gray-600 text-sm">
-                                                            {{ 'Rp' . number_format($item->amount, 2, ',', '.') }}
+                                                            @if ($item->status == 'active')
+                                                                {{ 'Rp' . number_format($item->amount, 2, ',', '.') }}
+                                                            @else
+                                                                <p class="line-through">
+                                                                    {{ 'Rp' . number_format($item->amount, 2, ',', '.') }}
+                                                                </p>
+                                                            @endif
+                                                        </td>
+                                                        <td class="py-3 text-center flex justify-center items-center">
+                                                            @if ($item->status == 'active')
+                                                                <span
+                                                                    class="text-white bg-green-400 px-2 py-1 rounded-md">Active</span>
+                                                            @elseif($item->status == 'trashed')
+                                                                <span
+                                                                    class="text-white bg-red-400 px-2 py-1 rounded-md">Trashed</span>
+                                                            @endif
                                                         </td>
                                                         <td class="py-3 px-6 text-center">
                                                             <div class="flex item-center justify-center">
-                                                                <a href="#"
-                                                                    class="view-button w-4 mr-2 scale-125 transform hover:text-green-500 hover:scale-150 transition duration-75">
-                                                                    <i class="bx bx-show"></i>
-                                                                </a>
                                                                 @if (auth()->user()->hasRole('admin'))
-                                                                    <a href="#"
-                                                                        class="update-button w-4 mr-2 scale-125 transform hover:text-indigo-500 hover:scale-150 transition duration-75">
-                                                                        {{-- data-user-id="{{ $user->id }}"
-                                                                    data-user-userName="{{ $user->username }}"
-                                                                    data-user-name="{{ $user->name }}"
-                                                                    data-user-email="{{ $user->email }}"
-                                                                    data-user-telepon="{{ $user->contact_info }}"
-                                                                    data-user-address="{{ $user->address }}"> --}} <i
-                                                                            class="bx bx-edit"></i>
-                                                                    </a>
-
-                                                                    <a href="#"
-                                                                        class="delete-button w-4 mr-2 scale-125 transform hover:text-red-500 hover:scale-150 transition duration-75">
-                                                                        <i class="bx bx-trash"></i>
-                                                                    </a>
+                                                                    @if ($item->status == 'active')
+                                                                        <a href="#"
+                                                                            data-id="{{ $item->id }}"
+                                                                            class="deleteExpense-button w-4 mr-2 scale-125 transform hover:text-red-500 hover:scale-150 transition duration-75">
+                                                                            <i class="bx bx-trash"></i>
+                                                                        </a>
+                                                                        @elseif($item->status == 'trashed')
+                                                                        <a href="#"
+                                                                            data-id="{{ $item->id }}"
+                                                                            class="deleteBlock-button w-4 mr-2 scale-125 transform transition duration-75">
+                                                                            <i class="bx bx-trash  line-through "></i>
+                                                                        </a>
+                                                                    @endif
                                                                 @endif
                                                             </div>
                                                         </td>
@@ -320,15 +331,13 @@
                 </div>
 
                 <script>
-                    let requestCount = 1; // Initialize counter for request
+                    let requestCount = 1;
 
-                    // Function to add new request row
                     document.getElementById('addRequest').addEventListener('click', function() {
-                        requestCount++; // Increment counter for new request
+                        requestCount++;
 
                         const requestContainer = document.querySelector('.request-container');
 
-                        // Create new request row
                         const newRequestRow = document.createElement('div');
                         newRequestRow.classList.add('flex', 'items-center', 'flex-row', 'gap-4', 'w-full', 'p-3', 'pl-3',
                             'mt-3', 'request-row');
@@ -350,22 +359,19 @@
             <i class="bx bx-x-circle scale-150 text-red-500 pt-4 delete-request cursor-pointer"></i>
         `;
 
-                        // Append the new request row and separator
                         requestContainer.appendChild(newRequestRow);
                         const separator = document.createElement('hr');
                         requestContainer.appendChild(separator);
                     });
 
-                    // Event delegation for delete buttons
                     document.querySelector('.request-container').addEventListener('click', function(e) {
                         if (e.target.classList.contains('delete-request')) {
                             const allRequests = document.querySelectorAll('.request-row');
 
-                            // Prevent deletion if it's the last remaining request
                             if (allRequests.length > 1) {
                                 const requestRow = e.target.closest('.request-row');
-                                requestRow.nextElementSibling?.remove(); // Remove the hr separator
-                                requestRow.remove(); // Remove the request row
+                                requestRow.nextElementSibling?.remove();
+                                requestRow.remove();
                             }
                         }
                     });
@@ -378,21 +384,74 @@
         </div>
     </div>
 
+    {{-- Cancel Request --}}
+    <div id="deleteExpense" class="fixed inset-0 items-center justify-center z-50 bg-black bg-opacity-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full" style="height: auto">
+            <h2 class="text-lg font-semibold mb-4">Remove expense</h2>
+            <p>Want to reemove this expense?<br> This action cannot be undone.</p>
+            <form id="cancelRequestForm" method="POST" action="{{ route('expenses.remove') }}">
+                @csrf
+                @method('PUT')
+                <input type="text" name="expenseId" id="expenseId" value="">
+                <div class="flex justify-end mt-4">
+                    <button type="button" id="closeModalCancel"
+                        class="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2" onclick="closeModal()">Back</button>
+                    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded">Remove</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
+
+    {{-- Script Modal Cancel --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Menangkap semua baris yang berisi data expense
+            const cancelButton = document.querySelectorAll('.deleteExpense-button');
+            const deleteExpense = document.getElementById('deleteExpense');
+            const closeModalCancel = document.getElementById('closeModalCancel');
+            const addUserForm = document.getElementById('addUserForm');
+
+            // Menampilkan modal saat tombol "add User" diklik
+            cancelButton.forEach(button => {
+                button.addEventListener('click', function() {
+                    const expenseId = this.getAttribute('data-id');
+                    deleteExpense.querySelector('input[name="expenseId"').value = expenseId;
+                    deleteExpense.classList.remove('hidden');
+                    deleteExpense.classList.add(
+                        'flex');
+                });
+            });
+
+            closeModalCancel.addEventListener('click', function() {
+                deleteExpense.classList.add('hidden');
+                deleteExpense.classList.remove('flex');
+            });
+
+            deleteExpense.addEventListener('click', function(e) {
+                if (e.target === deleteExpense) {
+                    deleteExpense.classList.add('hidden');
+                    deleteExpense.classList.remove('flex');
+                }
+            });
+        });
+    </script>
+
+    {{-- Script Open sub Table --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
             const rows = document.querySelectorAll('tr[data-expense]');
 
-            // Menambahkan event listener untuk setiap baris
             rows.forEach(row => {
                 const arrowIcon = row.querySelector('.bx');
+                const trashAllExpenses = row.querySelector('.trashAllExpenses-button');
+
 
                 row.addEventListener('click', function() {
                     const nestedTable = this
-                        .nextElementSibling; // Mengambil elemen berikutnya (tabel nested)
+                        .nextElementSibling;
 
                     // Toggle visibilitas tabel nested
                     if (nestedTable.style.display === "table-row") {
@@ -405,9 +464,14 @@
                         arrowIcon.classList.add('bx-chevron-down');
                     }
                 });
+                trashAllExpenses.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
             });
+
         });
     </script>
+
     {{-- Script Modal Add --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {

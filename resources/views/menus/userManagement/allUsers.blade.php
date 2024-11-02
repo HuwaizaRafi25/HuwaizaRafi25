@@ -164,7 +164,7 @@
                         </div>
                         <button
                             class="add-button -mt-1 max-h-10 flex items-center bg-blue-500 text-white font-semibold px-4 text-sm rounded hover:bg-blue-600 transition duration-200">
-                            <i class="bx bx-plus mr-2"></i> <!-- Menggunakan Boxicons untuk ikon -->
+                            <i class="bx bx-plus mr-2"></i> 
                             Add User
                         </button>
                     </div>
@@ -175,11 +175,10 @@
                     <table class="min-w-full table-auto">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                                <th class="py-3 px-6 text-left">NO</th>
-                                <th class="py-3 px-6 text-left">Name</th>
-                                <th class="py-3 px-6 text-left">Email</th>
-                                <th class="py-3 px-6 text-left">Status</th>
-                                <th class="py-3 px-6 text-left">Role</th>
+                                <th class="py-3 pl-3 text-center">NO</th>
+                                <th class="py-3 pl-6 text-left">User</th>
+                                <th class="py-3 px-6 text-center">Status</th>
+                                <th class="py-3 px-6 text-center">Role</th>
                                 <th class="py-3 px-6 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -189,22 +188,36 @@
                                     data-profile-image="{{ $user->profile_picture }}" data-name="{{ $user->name }}"
                                     data-email="{{ $user->email }}" data-contacts="{{ $user->contact_info }}"
                                     data-address="{{ $user->address }}" data-id="{{ $user->id }}">
-                                    <td class="py-3 px-6 text-left whitespace-nowrap">{{ $loop->iteration }}</td>
-                                    <td class="py-3 px-6 text-left">{{ $user->name }}</td>
-                                    <td class="py-3 px-6 text-left">{{ $user->email }}</td>
+                                    <td class="py-3 px-6 text-center whitespace-nowrap">{{ $loop->iteration }}</td>
                                     <td class="py-3 px-6 text-left">
+                                        <div class="flex items-center">
+                                            <img src="{{ $user->profile_picture ? asset($user->profile_picture) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=ccc&color=fff' }}"
+                                                alt="Profile Picture" class="object-cover w-10 h-10 rounded-full">
+                                            <div class="ml-3">
+                                                <span
+                                                    class="block font-semibold text-gray-800">{{ $user->name }}</span>
+                                                <span class="block text-sm text-gray-500">{{ $user->email }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td class="py-3 px-6 text-text flex justify-center items-center">
                                         @if ($user->is_logged_in == 1)
-                                            <span class="text-green-500">Online</span>
+                                            <span class="text-white bg-green-400 px-2 py-1 rounded-md">Online</span>
                                         @else
-                                            <span class="text-gray-500">Offline</span>
+                                            <span class="text-white bg-gray-400 px-2 py-1 rounded-md">Offline</span>
                                         @endif
                                     </td>
-                                    <td class="py-3 px-6 text-left font-semibold opacity-80">
+                                    <td class="py-3 px-6 text-center opacity-80">
                                         @if ($user->roles->isEmpty())
-                                            <p class="text-yellow-600">Unassigned</p>
+                                            <span
+                                                class="text-white bg-yellow-400 px-2 py-1 rounded-md">Unassigned</span>
                                         @else
                                             @foreach ($user->roles as $role)
-                                                {{ $role->name }}
+                                                <div
+                                                    class="bg-blue-400 min-w-[100px] py-1 rounded-md inline-block text-center">
+                                                    <span class="text-white">{{ $role->name }}</span>
+                                                </div>
                                             @endforeach
                                         @endif
                                     </td>

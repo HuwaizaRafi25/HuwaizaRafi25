@@ -15,7 +15,6 @@ class ExpensesController extends Controller
 {
     public function index()
     {
-        // Mengambil semua data expenses
         $ExpenseHeaders = ExpenseHeader::with('expenseItems', 'createdBy')->get(); // Mengambil semua expenses
         return view('menus.expenses.expenses', compact('ExpenseHeaders'));
     }
@@ -51,34 +50,23 @@ class ExpensesController extends Controller
             DB::rollback();
 
             Log::error($e->getMessage());
-            notify()->success('User was not successfully! ✍️', 'Failed!');
+            notify()->error('User was not successfully! ✍️', 'Failed!');
             return redirect()->back();
         }
     }
 
-    public function update(Request $request, $id)
+    public function remove(Request $request)
     {
-        // Ambil ID expense dari input
-        $expense = ExpenseHeader::findOrFail($id);
-
-        // Validasi input
-        $request->validate([
-            'item_name' => ['required', 'string', 'max:255'],
-            'amount' => ['required', 'numeric'],
-            'date' => ['required', 'date'],
-            'description' => ['nullable', 'string', 'max:500'],
+        $expenseItem = ExpenseItem::find($request->expenseId);
+        $expenseItem->update([
+            'status' => 'trashed'
         ]);
-
-        // Update data expense
-        $expense->update([
-            'item_name' => $request->item_name,
-            'amount' => $request->amount,
-            'date' => $request->date,
-            'description' => $request->description,
+        $total = ExpenseItem::where('status', 'active')->where('expense_header_id', $expenseItem->expense_header_id)->sum('amount');
+        $expenseHeader = ExpenseHeader::find($expenseItem->expense_header_id);
+        $expenseHeader->update([
+            'total_amount' => $total
         ]);
-
-        // Notifikasi sukses dan redirect
-        notify()->success('Expense updated successfully! 👌', 'Success!');
+        notify()->success('Expense Item removed successfully! 🗑️', 'Success!');
         return redirect()->back();
     }
 

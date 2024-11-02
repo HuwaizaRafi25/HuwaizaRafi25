@@ -31,37 +31,30 @@ class DesignController extends Controller
     }
     public function download($design_files)
     {
-        // Mengakses file di dalam storage/app/public
         $filePath = storage_path('app/public/designs/files/' . $design_files);
 
-        // Cek apakah file ada di path tersebut
         if (file_exists($filePath)) {
             return response()->download($filePath);
         }
 
-        // Jika file tidak ditemukan, return error
         return response()->json(['error' => 'File not found.'], 404);
     }
 
     public function downloadReference($reference_image, $name)
     {
-        // Mengakses file di dalam storage/app/public
         $filePath = storage_path('app/public/designs/reference_images/' . $reference_image);
         $designName = $name;
 
-        // Cek apakah file ada di path tersebut
         if (file_exists($filePath)) {
             return response()->download($filePath, $designName . '.png');
         }
 
-        // Jika file tidak ditemukan, return error
         echo $filePath;
-        // return response()->json(['error' => 'File not found.'], 404);
     }
     public function upload(Request $request)
     {
         $request->validate([
-            'design_file' => 'required|file|mimes:zip,rar|max:10240', // Maksimal 10MB
+            'design_file' => 'required|file|mimes:zip,rar|max:10240',
             'name' => ['required', 'string', 'max:255'],
             'request_id' => ['required', 'string', 'max:255'],
         ]);
@@ -78,14 +71,12 @@ class DesignController extends Controller
             $profilePicPath = $request->design_file;
 
             if ($request->hasFile('design_file')) {
-                // Hapus gambar lama jika ada
                 if ($profilePicPath && file_exists(public_path($profilePicPath))) {
                     unlink(public_path($profilePicPath));
                 }
-                // Simpan gambar baru
                 $image = $request->file('design_file');
                 $path = $image->store('designs/files', 'public');
-                $profilePicPath = 'storage/' . $path; // Simpan path di database
+                $profilePicPath = 'storage/' . $path;
             }
 
             $design = new Design();
@@ -104,6 +95,65 @@ class DesignController extends Controller
 
     }
 
+    public function reupload(Request $request)
+    {
+        $request->validate([
+            'design_file' => 'required|file|mimes:zip,rar|max:10240',
+            'name' => ['required', 'string', 'max:255'],
+            'designId' => ['required', 'string', 'max:255'],
+        ]);
+
+        $profilePicPath = $request->design_file;
+
+        if ($request->hasFile('design_file')) {
+            if ($profilePicPath && file_exists(public_path($profilePicPath))) {
+                unlink(public_path($profilePicPath));
+            }
+            $image = $request->file('design_file');
+            $path = $image->store('designs/files', 'public');
+            $profilePicPath = 'storage/' . $path;
+
+            $design = Design::find($request->designId);
+            if ($design) {
+                $design->design_files = $profilePicPath;
+                $design->design_name = $request->name;
+                $design->status = 'in_design';
+                $design->save();
+                notify()->success('Design was uploaded successfully! 👌', 'Success!');
+                return redirect()->back();
+            }
+        } else {
+            notify()->error('Design file failed to send! ', 'Failed!');
+            return redirect()->back();
+        }
+    }
+
+
+    public function revision(Request $request)
+    {
+        $request->validate([
+            'design_id' => ['required', 'string', 'max:255'],
+        ]);
+        DB::beginTransaction();
+        try {
+            $design = Design::find($request->design_id);
+            $designRequest = DesignRequest::find($design->request_id);
+            $designRequest->update([
+                'design_id' => $design->id,
+                'status' => 'redesign'
+            ]);
+            $design->update([
+                'status' => 'revision'
+            ]);
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            Log::error($e->getMessage());
+            notify()->success('Revision request was failed! ', 'Failed!');
+            return redirect()->back();
+        }
+    }
     public function approve(Request $request)
     {
         DB::beginTransaction();

@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transaction_details', function (Blueprint $table) {
+        Schema::create('debt_payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('transaction_id')->constrained('transaction_headers');
-            $table->foreignId('design_request_id')->constrained('design_requests');
-            $table->bigInteger('subtotal');
+            $table->foreignId('debt_id')->constrained('debts');
+            $table->integer('payment_amount');
             $table->timestamps();
         });
     }
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('transaction_details');
+        // Schema::dropIfExists('debt_payments');
     }
 };

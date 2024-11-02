@@ -11,7 +11,8 @@ class ExpenseItem extends Model
     protected $fillable = [
         "expense_header_id",
         "item_name",
-        "amount"
+        "amount",
+        "status"
     ];
 
     public function expenseHeader(){

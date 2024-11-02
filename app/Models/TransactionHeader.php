@@ -12,6 +12,7 @@ class TransactionHeader extends Model
         'customer_id',
         'total_price',
         'midtrans_transaction_id',
+        'payment_proof_pic',
         'payment_type',
         'status',
         'payment_date',

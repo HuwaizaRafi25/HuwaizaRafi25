@@ -192,7 +192,6 @@
                                     <th class="py-3 px-6 text-left">Request Name</th>
                                     <th class="py-3 px-6 text-left">Specifications</th>
                                     <th class="py-3 px-6 text-left">Operation Summary</th>
-                                    {{-- <th class="py-3 px-6 text-left">Details</th> --}}
                                     <th class="py-3 px-6 text-center">Actions</th>
                                 </tr>
                             </thead>
@@ -214,7 +213,6 @@
                                                 $size = explode('x', $designReq->size);
                                                 $width = $size[0] ?? 'N/A';
                                                 $height = $size[1] ?? 'N/A';
-
                                                 $colors = explode(',', $designReq->color);
                                             @endphp
                                             <p class="font-semibold">Size:</p>
@@ -224,18 +222,14 @@
                                         </td>
                                         <td class="py-3 px-6 text-left">
                                             @php
-                                                // Menghitung total operasi yang sudah selesai (completed)
                                                 $completedOps = 0;
 
-                                                // Cek apakah desain ada
                                                 if ($designReq->design) {
-                                                    // Jumlahkan semua quantity dari machineOperations di setiap design
                                                     $completedOps += $designReq->design->machineOperations->sum(
                                                         'quantity',
                                                     );
                                                 }
 
-                                                // Menghitung jumlah yang tersisa
                                                 $remainingOps = $designReq->total_pieces - $completedOps;
                                             @endphp
 
@@ -246,8 +240,7 @@
                                         </td>
                                         <td class="py-3 px-6 text-center">
                                             <div class="flex item-center justify-center">
-                                                <a href="#"
-                                                    data-machineOp-idReq="{{ $designReq->id }}"
+                                                <a href="#" data-machineOp-idReq="{{ $designReq->id }}"
                                                     data-machineOp-id="{{ $designReq->design->id }}"
                                                     data-machineOp-pic="{{ $designReq->reference_image }}"
                                                     data-machineOp-name="{{ $designReq->design->design_name }}"
@@ -262,7 +255,23 @@
                                                     class="download-button w-4 mr-2 scale-125 transform hover:text-teal-500 hover:scale-150 transition duration-75">
                                                     <i class="bx bx-download"></i>
                                                 </a>
-                                                <a href="#"
+                                                @php
+                                                    $colors = $designReq->color;
+                                                    $colorArray = explode(',', $colors);
+                                                    $formattedColors = array_map('ucfirst', $colorArray);
+                                                    $formattedColorString = implode(', ', $formattedColors);
+
+                                                    $size = explode('x', $designReq->size);
+                                                    $width = $size[0] ?? 'N/A';
+                                                    $height = $size[1] ?? 'N/A';
+
+                                                @endphp
+                                                <a href="#" data-pic="{{ $designReq->reference_image }}"
+                                                    data-name="{{ $designReq->name }}"
+                                                    data-colors="{{ $formattedColorString }}"
+                                                    data-sizeW="{{ $width }}"
+                                                    data-sizeH="{{ $height }}"
+                                                    data-desc="{{ $designReq->description }}"
                                                     class="view-button w-4 mr-2 scale-125 transform hover:text-green-500 hover:scale-150 transition duration-75">
                                                     <i class="bx bx-show"></i>
                                                 </a>
@@ -458,27 +467,15 @@
                                         </td>
                                         <td class="py-3 px-6 text-center">
                                             <div class="flex item-center justify-center">
-                                                {{-- <a href="{{ route('design.download', basename($design->design_files)) }}" --}}
-                                                {{-- class="download-button w-4 mr-2 scale-125 transform hover:text-green-500 hover:scale-150 transition duration-75">
-                                                <i class="bx bx-download"></i> --}}
-                                                {{-- </a> --}}
                                                 <a href="#"
-                                                    class="view-button w-4 mr-2 scale-125 transform hover:text-green-500 hover:scale-150 transition duration-75">
+                                                    data-pic="{{ $machineOp->design->designRequest->reference_image }}"
+                                                    data-name="{{ $machineOp->design->designRequest->name }}"
+                                                    data-operator="{{ $machineOp->operator->name }}"
+                                                    data-assistant="{{ $machineOp->assistant ? $machineOp->assistant->name : '-' }}"
+                                                    data-worked="{{ $machineOp->quantity }}"
+                                                    data-comment="{{ $machineOp->comments }}"
+                                                    class="viewOps-button w-4 mr-2 scale-125 transform hover:text-green-500 hover:scale-150 transition duration-75">
                                                     <i class="bx bx-show"></i>
-                                                </a>
-                                                <a href="#"
-                                                    class="update-button w-4 mr-2 scale-125 transform hover:text-indigo-500 hover:scale-150 transition duration-75">
-                                                    {{-- data-user-id="{{ $user->id }}"
-                                                data-user-name="{{ $user->name }}"
-                                                data-user-email="{{ $user->email }}"
-                                                data-user-telepon="{{ $user->contact_info }}"
-                                                data-user-address="{{ $user->address }}"> --}}
-                                                    <i class="bx bx-edit"></i>
-                                                </a>
-
-                                                <a href="#"
-                                                    class="delete-button w-4 mr-2 scale-125 transform hover:text-red-500 hover:scale-150 transition duration-75">
-                                                    <i class="bx bx-trash"></i>
                                                 </a>
                                             </div>
                                         </td>
@@ -591,6 +588,125 @@
         </div>
     </div>
 
+    <!-- Modal View Machine Ops -->
+    <div id="viewOpsModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full" style="max-height: 95vh; height: auto">
+            <div class="flex items-center justify-between">
+                <i id="closeViewOpsModal"
+                    class="bx bx-arrow-back scale-125 font-extrabold mb-4 cursor-pointer hover:scale-150"></i>
+                <h2 class="text-xl font-bold mb-4 pr-4 mx-auto">View Machine Ops</h2>
+            </div>
+            <div class="machineOps overflow-y-scroll flex flex-col p-3" id="request-1" style="max-height: 75vh; height: auto;">
+                <div class="flex flex-col items-center justify-center mt-3 mx-2">
+                    <label for="userProfileImageInput-1">
+                        <img id="designReference" src="{{ asset('assets/images/rpl.png') }}" alt="User Profile"
+                            class="w-48 h-48 rounded-xl object-contain">
+                        </label>
+                        <p class="font-semibold text-lg pt-2" id="requestName">Logo Logoan</p>
+                </div>
+                <div class="p-3">
+                    <!-- Operator -->
+                    <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
+                        <div>
+                            <label for="operator" class="text-gray-600 font-light text-sm">Operated by :</label>
+                            <p id="operatorName">Cahyadi</p>
+                        </div>
+                    </div>
+
+                    <!-- Assistant -->
+                    <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
+                        <div>
+                            <label for="assistant" class="text-gray-600 font-light text-sm">Assisted by :</label>
+                            <p id="assistantName">Pamungkaz</p>
+                        </div>
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
+                        <div>
+                            <label for="quantity" class="text-gray-600 font-light text-sm">Quantity Worked :</label>
+                            <p id="piecesWorked">907Pcs</p>
+                        </div>
+                    </div>
+
+                    <!-- Comment -->
+                    <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
+                        <div>
+                            <label for="comment" class="text-gray-600 font-light text-sm">Comment :</label>
+                            <p class="w-full flex-wrap text-wrap" id="comment">
+                                dua an ngerjainnya
+                                dua an ngerjainnya
+                                dua an ngerjainnya
+                                dua an ngerjainnya
+                                dua an ngerjainnya
+                                dua an ngerjainnya
+
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal View Request -->
+    <div id="viewModal" class="fixed inset-0 items-center justify-center z-50 bg-black bg-opacity-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-auto" style="height: auto">
+            <div class="flex items-center justify-between">
+                <i id="closeViewModal"
+                    class="bx bx-arrow-back scale-125 font-extrabold mb-4 cursor-pointer hover:scale-150"></i>
+                <h2 class="text-xl font-bold mb-4 pr-4 mx-auto">View Request</h2>
+            </div>
+            <input type="hidden" name="referenceImage">
+            <div class="request-container" style="max-height: 85vh">
+                <div class="flex p-3 pb-5" id="request-1">
+                    <div class="flex justify-center mt-3 -ml-4 mx-3">
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center">
+                                <div class="flex flex-row items-center mr-2">
+                                    <span id="sizeH" class="text-sm mb-1 -rotate-90">?CM</span>
+                                    <div class="h-48 w-px bg-black border-black"></div>
+                                </div>
+                                <img id="requestPic" src="{{ asset('assets/images/mu.jpeg') }}" alt="User Profile"
+                                    class="w-48 h-48 rounded-2xl object-cover">
+                            </div>
+                            <div class="relative w-48 mt-2 ml-10">
+                                <hr class="border-black">
+                                <span id="sizeW"
+                                    class="absolute inset-0 flex justify-center text-sm top-2 transform -translate-y-1/2 bg-white">?CM</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3">
+                        <div class="w-full">
+                            <label for="requestName" class="text-gray-700 font-normal text-sm">Request Name :
+                            </label>
+                            <p id="requestName" class="text-black text-lg font-semibold">MU BOBROK</p>
+                            <hr>
+                        </div>
+                        <div class="w-full my-1">
+                            <label for="requestColors" class="text-gray-700 font-normal text-sm">Colors :
+                            </label>
+                            <p id="requestColors" class="text-black text-lg font-semibold">Red, Green, Blue
+                            </p>
+                            <hr>
+                        </div>
+                        <div class="w-full text-wrap flex-wrap">
+                            <label for="requestDesc" class="text-gray-700 font-normal text-sm">Description :
+                            </label>
+                            <p id="requestDesc" class="text-black text-lg font-semibold">Lorem ipsum dolor sit
+                                {{-- amet, consectetur adipisicing elit. Est laboriosam, error voluptatibus ut neque
+                                            nihil consectetur in ratione, reiciendis accusamus cupiditate minus iusto modi --}}
+                                maxime ab repellat molestias esse dolorem!</p>
+                            <hr>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -692,461 +808,89 @@
         });
     </script>
 
-
-
-    {{-- <!-- Modal View -->
-    <div id="userModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
-            <div class="flex items-center justify-between">
-                <i id="closeModal"
-                    class="bx bx-arrow-back scale-125 font-extrabold mb-4 ml-1 cursor-pointer hover:scale-150"></i>
-                <h2 class="text-xl font-bold mb-4 pr-4 mx-auto underline">User Details</h2>
-            </div>
-            <div class="flex justify-center">
-                <img id="userProfileImage" src="" alt="User Profile"
-                    class="w-32 h-32 rounded-full object-cover cursor-pointer">
-            </div>
-            <div id="imageOverlay" class="fixed inset-0 bg-black bg-opacity-75 items-center justify-center hidden">
-                <img id="fullScreenImage" class="full-screen-image" src="" alt="Full Screen User Profile">
-            </div>
-            <div class="flex flex-col items-center mb-4 mt-2">
-                <h3 id="userName" class="text-lg font-semibold"></h3>
-                <p class="text-gray-600">Admin</p>
-            </div>
-            <hr>
-            <div class="my-4">
-
-                <p class="text-gray-600 font-light text-sm"><i class="bx bx-envelope mr-2 scale-110 pt-3"></i>Email
-                    Address:</p>
-                <a href="mailto:huwaiza137@gmail.com" class="flex hover:text-blue-500" target="_blank">
-                    <p id="userEmail" class="text-base font-medium mb-2 transition duration-75 cursor-pointer"></p><i
-                        class="bx bx-link-alt ml-1 pt-1"></i>
-                </a>
-                <p class="text-gray-600 font-light text-sm"><i class="bx bx-phone mr-2 scale-110 pt-3"></i>Contact
-                    Address:</p>
-                <a href="https://wa.me/08815184624" class="flex hover:text-blue-500" target="_blank">
-                    <p id="userContacts" class="text-base font-medium mb-2 transition duration-75 cursor-pointer"></p>
-                    <i class="bx bx-link-alt ml-1 pt-1"></i>
-                </a>
-                <p class="text-gray-600 font-light text-sm"><i class="bx bx-map mr-2 scale-110 pt-3"></i>Address:</p>
-                <a href="https://maps.app.goo.gl/5kFdZUb2p61mVekN7" class="flex hover:text-blue-500" target="_blank">
-                    <p id="userAddress" class="text-base font-medium mb-2 transition duration-75 cursor-pointer"></p>
-                    <i class="bx bx-link-alt ml-1 pt-1"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Add User -->
-    <div id="addModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full">
-            <div class="flex items-center justify-between">
-                <i id="closeAddModal"
-                    class="bx bx-arrow-back scale-125 font-extrabold mb-4 cursor-pointer hover:scale-150"></i>
-                <h2 class="text-xl font-bold mb-4 pr-4 mx-auto underline">Add New User</h2>
-            </div>
-            <form id="addUserForm" action="{{ route('allUsers.store') }}" method="POST"
-                enctype="multipart/form-data">
-                @csrf
-                <div class="mt-4">
-                    <!-- Profile Picture -->
-                    <label for="profile_pic" class="text-gray-600 font-light text-sm">Profile Picture</label>
-                    <input type="file" name="profile_pic" id="profile_pic" accept="image/*"
-                        class="w-full border rounded p-2 focus:outline-none focus:border-blue-500">
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Name -->
-                    <div>
-                        <label for="name" class="text-gray-600 font-light text-sm">Name</label>
-                        <input type="text" name="name" id="name" placeholder="Enter Name"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                    <!-- Username -->
-                    <div>
-                        <label for="username" class="text-gray-600 font-light text-sm">Username</label>
-                        <input type="text" name="username" id="username" placeholder="Enter Username"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <!-- Email -->
-                    <div>
-                        <label for="email" class="text-gray-600 font-light text-sm">Email</label>
-                        <input type="email" name="email" id="email" placeholder="Enter Email Address"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                    <!-- Phone -->
-                    <div>
-                        <label for="telepon" class="text-gray-600 font-light text-sm">Phone</label>
-                        <input type="number" name="telepon" id="telepon"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500 appearance-none"
-                            placeholder="Your phone number" required pattern="[0-9]*"
-                            title="Please enter numbers only"
-                            style="moz-appearance:textfield; -webkit-appearance:none;">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
-                    <!-- Address -->
-                    <div>
-                        <label for="address" class="text-gray-600 font-light text-sm">Address</label>
-                        <input type="text" name="address" id="address" placeholder="Enter address"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <!-- Password -->
-                    <div>
-                        <label for="password" class="text-gray-600 font-light text-sm">Password</label>
-                        <input type="password" name="password" id="password" placeholder="Enter Password"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                    <!-- Confirm Password -->
-                    <div>
-                        <label for="password_confirmation" class="text-gray-600 font-light text-sm">Confirm
-                            Password</label>
-                        <input type="password" name="password_confirmation" id="password_confirmation"
-                            placeholder="Confirm Password"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                </div>
-
-                <div class="flex justify-end mt-6">
-                    <button type="submit"
-                        class="bg-blue-500 text-white font-bold py-2 px-6 rounded hover:bg-blue-600 transition duration-200">Add
-                        User</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Update User -->
-    <div id="updateModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full">
-            <div class="flex items-center justify-between">
-                <i id="closeUpdateModal"
-                    class="bx bx-arrow-back scale-125 font-extrabold mb-4 cursor-pointer hover:scale-150"></i>
-                <h2 class="text-xl font-bold mb-4 pr-4 mx-auto underline">Update User</h2>
-            </div>
-            <form id="updateUserForm" action="{{ route('allUsers.update', $user->id) }}" method="POST"
-                enctype="multipart/form-data">
-                @csrf
-                @method('PUT')
-                <input type="hidden" name="user_id" id="user_id" value="{{ $user->id }}">
-
-                <div class="mt-4">
-                    <!-- Profile Picture -->
-                    <label for="profile_pic" class="text-gray-600 font-light text-sm">Profile Picture</label>
-                    <input type="file" name="profile_pic" id="profile_pic" accept="image/*"
-                        class="w-full border rounded p-2 focus:outline-none focus:border-blue-500">
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Name -->
-                    <div>
-                        <label for="name" class="text-gray-600 font-light text-sm">Name</label>
-                        <input type="text" name="name" id="name" placeholder="Enter Name"
-                            value="{{ $user->name }}"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                    <!-- Username -->
-                    <div>
-                        <label for="username" class="text-gray-600 font-light text-sm">Username</label>
-                        <input type="text" name="username" id="username" placeholder="Enter Username"
-                            value="{{ $user->username }}"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <!-- Email -->
-                    <div>
-                        <label for="email" class="text-gray-600 font-light text-sm">Email</label>
-                        <input type="email" name="email" id="email" placeholder="Enter Email Address"
-                            value="{{ $user->email }}"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                    <!-- Phone -->
-                    <div>
-                        <label for="telepon" class="text-gray-600 font-light text-sm">Phone</label>
-                        <input type="number" name="telepon" id="telepon"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500 appearance-none"
-                            placeholder="Your phone number" value="{{ $user->contact_info }}" required
-                            pattern="[0-9]*" title="Please enter numbers only"
-                            style="moz-appearance:textfield; -webkit-appearance:none;">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
-                    <!-- Address -->
-                    <div>
-                        <label for="address" class="text-gray-600 font-light text-sm">Address</label>
-                        <input type="text" name="address" id="address" placeholder="Enter address"
-                            value="{{ $user->address }}"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500" required>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <!-- Password -->
-                    <div>
-                        <label for="password" class="text-gray-600 font-light text-sm">Password</label>
-                        <input type="password" name="password" id="password" placeholder="Enter Password"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500">
-                    </div>
-                    <!-- Confirm Password -->
-                    <div>
-                        <label for="password_confirmation" class="text-gray-600 font-light text-sm">Confirm
-                            Password</label>
-                        <input type="password" name="password_confirmation" id="password_confirmation"
-                            placeholder="Confirm Password"
-                            class="w-full border rounded p-2 focus:outline-none focus:border-blue-500">
-                    </div>
-                </div>
-
-                <div class="flex justify-end mt-6">
-                    <button type="submit"
-                        class="bg-blue-500 text-white font-bold py-2 px-6 rounded hover:bg-blue-600 transition duration-200">Update
-                        User</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Delete -->
-    <div id="deleteModal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold text-red-600 underline">Confirm Deletion</h2>
-            </div>
-            <p class="text-gray-700 mt-4">Are you sure you want to delete this item? This action cannot be undone.</p>
-            <div class="mt-6 flex justify-end">
-                <button id="cancelDelete" class="bg-gray-300 text-gray-700 py-2 px-4 rounded mr-2 hover:bg-gray-400">
-                    Cancel
-                </button>
-                <button id="confirmDelete" class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
-                    Delete
-                </button>
-            </div>
-        </div>
-    </div> --}}
-
-    {{-- Script Modal Delete --}}
-    {{-- <script>
+    {{-- Script View Request --}}
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const deleteButtons = document.querySelectorAll('.delete-button');
-            const deleteModal = document.getElementById('deleteModal');
-            const cancelDelete = document.getElementById('cancelDelete');
-            const confirmDelete = document.getElementById('confirmDelete');
-            let userId; // Declare userId outside
+            const viewButton = document.querySelectorAll('.view-button');
+            const viewModal = document.getElementById('viewModal');
+            const closeModal = document.getElementById('closeViewModal');
 
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const row = this.closest('tr'); // Get the closest tr
-                    userId = row.getAttribute('data-id'); // Set userId from data-id
-                    deleteModal.classList.add('show'); // Show the modal
-                });
-            });
-
-            cancelDelete.addEventListener('click', function() {
-                deleteModal.classList.remove('show'); // Hide the modal
-            });
-
-            confirmDelete.addEventListener('click', function() {
-                if (userId) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = `/users/${userId}`; // Use the userId
-
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = '{{ csrf_token() }}';
-
-                    const methodInput = document.createElement('input');
-                    methodInput.type = 'hidden';
-                    methodInput.name = '_method';
-                    methodInput.value = 'DELETE';
-
-                    form.appendChild(csrfInput);
-                    form.appendChild(methodInput);
-                    document.body.appendChild(form);
-                    form.submit(); // Submit the form
-                }
-                deleteModal.classList.remove('show'); // Hide the modal
-            });
-        });
-    </script> --}}
-
-    {{-- Script Modal View --}}
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Cari semua elemen dengan kelas 'view-button'
-            document.querySelectorAll('.view-button').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('keklik bang')
-                    const row = this.closest('tr');
-                    if (row) {
-                        const userProfileImage = row.getAttribute('data-profile-image');
-                        const userName = row.getAttribute('data-name');
-                        const userEmail = row.getAttribute('data-email');
-                        const userContacts = row.getAttribute('data-contacts');
-                        const userAddress = row.getAttribute('data-address');
-
-                        // Update gambar profil
-                        if (userProfileImage) {
-                            const imageUrl = "{{ asset('') }}" + userProfileImage;
-                            document.getElementById('userProfileImage').src = imageUrl;
-                        }
-
-                        // Update data user di modal
-                        document.getElementById('userName').innerText = userName || 'N/A';
-                        document.getElementById('userEmail').innerText = userEmail || 'N/A';
-                        document.getElementById('userContacts').innerText = userContacts || 'N/A';
-                        document.getElementById('userAddress').innerText = userAddress || 'N/A';
-                    } else {
-                        console.error("Baris tidak ditemukan!");
-                    }
-
-                    // Tampilkan modal
-                    const userModal = document.getElementById('userModal');
-                    console.log(
-                        userModal); // Tambahkan log untuk memeriksa apakah userModal ditemukan
-                    if (userModal) {
-                        userModal.classList.add('show'); // Tambahkan class show
-                    } else {
-                        console.error("Element with ID 'userModal' not found!");
-                    }
-                });
-            });
-
-            // Menutup modal
-            const closeModalButton = document.getElementById('closeModal');
-            if (closeModalButton) {
-                closeModalButton.addEventListener('click', function() {
-                    const userModal = document.getElementById('userModal');
-                    console.log(
-                        userModal
-                    ); // Tambahkan log untuk memeriksa apakah userModal ditemukan saat mencoba menutup modal
-                    if (userModal) {
-                        userModal.classList.remove('show'); // Hapus class show
-                    } else {
-                        console.error("Element with ID 'userModal' not found!");
-                    }
-                });
-            } else {
-                console.error("Element with ID 'closeModal' not found!");
-            }
-        });
-    </script> --}}
-
-    {{-- Script Modal Add --}}
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Mendapatkan elemen-elemen yang dibutuhkan
-            const updateButtons = document.querySelectorAll('.update-button');
-            const updateModal = document.getElementById('updateModal');
-            const closeModal = document.getElementById('closeUpdateModal');
-            const updateUserForm = document.getElementById('updateUserForm');
-
-            // Menampilkan modal saat tombol "update User" diklik
-            updateButtons.forEach(button => {
+            viewButton.forEach(button => {
                 button.addEventListener('click', function() {
-                    const userId = this.getAttribute('data-user-id'); // Ambil ID dari atribut data
-                    const userName = this.getAttribute(
-                        'data-user-name'); // Ambil nama dari atribut data
-                    const userEmail = this.getAttribute(
-                        'data-user-email'); // Ambil email dari atribut data
-                    const userTelepon = this.getAttribute(
-                        'data-user-telepon'); // Ambil telepon dari atribut data
-                    const userAddress = this.getAttribute(
-                        'data-user-address'); // Ambil address dari atribut data
+                    const pic = this.getAttribute('data-pic');
+                    const name = this.getAttribute('data-name');
+                    const sizeW = this.getAttribute('data-sizeW');
+                    const sizeH = this.getAttribute('data-sizeH');
+                    const colors = this.getAttribute('data-colors');
+                    const desc = this.getAttribute('data-desc');
+                    viewModal.querySelector('img#requestPic').src = `/${pic}`;
+                    viewModal.querySelector('#requestName').textContent = name;
+                    viewModal.querySelector('#sizeW').textContent = sizeW + 'CM';
+                    viewModal.querySelector('#sizeH').textContent = sizeH + 'CM';
+                    viewModal.querySelector('#requestColors').textContent = colors;
+                    viewModal.querySelector('#requestDesc').textContent = desc;
 
-                    // Mengisi form di modal dengan data pengguna
-                    updateUserForm.action = `/allUsers/${userId}`; // Set action form
-                    updateUserForm.querySelector('input[name="name"]').value = userName;
-                    updateUserForm.querySelector('input[name="email"]').value = userEmail;
-                    updateUserForm.querySelector('input[name="telepon"]').value = userTelepon;
-                    updateUserForm.querySelector('input[name="address"]').value = userAddress;
-
-                    // Tampilkan modal
-                    updateModal.classList.remove('hidden');
-                    updateModal.classList.add('flex'); // Menggunakan 'flex' untuk menampilkan modal
+                    viewModal.classList.remove('hidden');
+                    viewModal.classList.add(
+                        'flex');
                 });
             });
 
-            // Menutup modal saat tombol "Close" diklik
             closeModal.addEventListener('click', function() {
-                updateModal.classList.add('hidden');
-                updateModal.classList.remove('flex');
+                viewModal.classList.add('hidden');
+                viewModal.classList.remove('flex');
             });
 
-            // Menutup modal saat area di luar modal diklik
-            updateModal.addEventListener('click', function(e) {
-                if (e.target === updateModal) {
-                    updateModal.classList.add('hidden');
-                    updateModal.classList.remove('flex');
+            viewModal.addEventListener('click', function(e) {
+                if (e.target === viewModal) {
+                    viewModal.classList.add('hidden');
+                    viewModal.classList.remove('flex');
                 }
             });
         });
-    </script> --}}
+    </script>
 
-    {{-- Script Modal Add --}}
-    {{-- <script>
+    {{-- Script View Machine Ops Request --}}
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Mendapatkan elemen-elemen yang dibutuhkan
-            const addButton = document.querySelectorAll('.add-button');
-            const addModal = document.getElementById('addModal');
-            const closeModal = document.getElementById('closeAddModal');
-            const addUserForm = document.getElementById('addUserForm');
+            const viewOpsButton = document.querySelectorAll('.viewOps-button');
+            const viewOpsModal = document.getElementById('viewOpsModal');
+            const closeModal = document.getElementById('closeViewModal');
 
-            // Menampilkan modal saat tombol "add User" diklik
-            addButton.forEach(button => {
+            viewOpsButton.forEach(button => {
                 button.addEventListener('click', function() {
-                    // Tampilkan modal
-                    addModal.classList.remove('hidden');
-                    addModal.classList.add('flex'); // Menggunakan 'flex' untuk menampilkan modal
+                    const pic = this.getAttribute('data-pic');
+                    const name = this.getAttribute('data-name');
+                    const operator = this.getAttribute('data-operator');
+                    const assistant = this.getAttribute('data-assistant');
+                    const worked = this.getAttribute('data-worked');
+                    const comment = this.getAttribute('data-comment');
+                    viewOpsModal.querySelector('img#designReference').src = `/${pic}`;
+                    viewOpsModal.querySelector('#requestName').textContent = name;
+                    viewOpsModal.querySelector('#operatorName').textContent = operator;
+                    viewOpsModal.querySelector('#assistantName').textContent = assistant;
+                    viewOpsModal.querySelector('#piecesWorked').textContent = worked;
+                    viewOpsModal.querySelector('#comment').textContent = comment;
+
+                    viewOpsModal.classList.remove('hidden');
+                    viewOpsModal.classList.add(
+                        'flex');
                 });
             });
 
-            // Menutup modal saat tombol "Close" diklik
             closeModal.addEventListener('click', function() {
-                addModal.classList.add('hidden');
-                addModal.classList.remove('flex');
+                viewOpsModal.classList.add('hidden');
+                viewOpsModal.classList.remove('flex');
             });
 
-            // Menutup modal saat area di luar modal diklik
-            addModal.addEventListener('click', function(e) {
-                if (e.target === addModal) {
-                    addModal.classList.add('hidden');
-                    addModal.classList.remove('flex');
+            viewOpsModal.addEventListener('click', function(e) {
+                if (e.target === viewOpsModal) {
+                    viewOpsModal.classList.add('hidden');
+                    viewOpsModal.classList.remove('flex');
                 }
             });
         });
-    </script> --}}
-
-    {{-- <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const userProfileImage = document.getElementById('userProfileImage');
-            const fullScreenImage = document.getElementById('fullScreenImage');
-            const imageOverlay = document.getElementById('imageOverlay');
-
-            userProfileImage.addEventListener('click', function() {
-                fullScreenImage.src = this.src;
-                imageOverlay.style.display = 'flex'; // Tampilkan overlay
-            });
-
-            imageOverlay.addEventListener('click', function() {
-                imageOverlay.style.display = 'none'; // Sembunyikan overlay saat diklik
-            });
-        });
-    </script> --}}
-
+    </script>
 
 
 </x-app-layout>

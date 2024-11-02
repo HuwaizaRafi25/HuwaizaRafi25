@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transaction_details', function (Blueprint $table) {
+        Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('transaction_id')->constrained('transaction_headers');
-            $table->foreignId('design_request_id')->constrained('design_requests');
-            $table->bigInteger('subtotal');
+            $table->foreignId('sender')->constrained('users');
+            $table->foreignId('receiver')->constrained('users');
+            $table->string('icon');
+            $table->string('massage');
+            $table->string('route');
+            $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
     }
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('transaction_details');
+        // Schema::dropIfExists('notifications');
     }
 };

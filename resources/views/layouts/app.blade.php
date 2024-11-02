@@ -33,6 +33,62 @@
         .request-container::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+        .request-container2::-webkit-scrollbar {
+            display: block;
+            width: 8px;
+        }
+
+        .request-container2::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .request-container2::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 10px;
+        }
+
+        .request-container2::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        .machineOps::-webkit-scrollbar {
+            display: block;
+            width: 8px;
+        }
+
+        .machineOps::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .machineOps::-webkit-scrollbar-thumb {
+            background-color: #888;
+            border-radius: 10px;
+        }
+
+        .machineOps::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Custom Scrollbar for request-container */
+        .notifCard::-webkit-scrollbar {
+            display: block;
+            width: 8px;
+        }
+
+        .notifCard::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .notifCard::-webkit-scrollbar-thumb {
+            background-color: #aaaaaa;
+            border-radius: 10px;
+        }
+
+        .notifCard::-webkit-scrollbar-thumb:hover {
+            background: #929292;
+        }
 
 
         .notify {
@@ -58,6 +114,40 @@
 <body class="font-sans antialiased">
     <!-- Sidebar -->
     <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <div id="notif"
+        class="fixed inset-0 items-start pt-[74px] pr-24 bg-black bg-opacity-15 justify-end hidden z-50">
+        <div class="bg-white opacity-100 w-96 rounded-md h-auto p-4">
+            <div class="flex justify-between">
+                <h2 class="font-semibold">Notifications</h2>
+                <i id="closeNotif" class="bx bx-x scale-150 p-1 cursor-pointer"></i>
+            </div>
+            <hr class="mt-1">
+            <div class="notifCard max-h-44 overflow-y-scroll ">
+                @foreach ($allNotifications as $notification)
+                    <a href="{{ route($notification->route) }}">
+                        <div
+                            class="flex py-3 px-4 mr-1 rounded-lg mt-2 justify-between hover:bg-blue-50 cursor-pointer">
+                            <div class="flex">
+                                <i
+                                    class="{{ $notification->icon }} scale-125 mr-2 bg-blue-400 bg-opacity-50 rounded-lg p-1"></i>
+                                <p>{{ $notification->massage }}</p>
+                            </div>
+                            @if ($notification->is_read == 0)
+                                <div class="bg-red-500 h-2 w-2 rounded-full"></div>
+                            @endif
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+            <hr class="my-1">
+            <div class="flex justify-end items-center text-blue-500 mt-2 cursor-pointer">
+                <i class="bx bx-check-double scale-150"></i>
+                <h2 class="font-semibold pl-2">Mark all as read</h2>
+            </div>
+        </div>
+    </div>
+
+
     <nav class="sidebar">
         <header class="pt-2 pb-4">
             <div class="image-text">
@@ -207,6 +297,17 @@
                     </li>
                 </div>
             @endif
+            @if (auth()->user()->hasrole('admin') || auth()->user()->hasRole('customer'))
+                <!-- Transactions -->
+                <div class="menu">
+                    <li class="nav-link" data-navLink="8">
+                        <div class="navhead">
+                            <i class='bx bx-money-withdraw icon'></i>
+                            <span class="text nav-text">Debts</span>
+                        </div>
+                    </li>
+                </div>
+            @endif
 
             @if (auth()->user()->hasrole('admin'))
                 <!-- Payroll -->
@@ -349,7 +450,30 @@
     </section>
 
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifButton = document.getElementById('notifButton');
+            const notifCard = document.getElementById('notif');
+            const closeNotif = document.getElementById('closeNotif');
 
+            notifButton.addEventListener('click', function() {
+                notifCard.classList.remove('hidden');
+                notifCard.classList.add('flex');
+            });
+
+            closeNotif.addEventListener('click', function() {
+                notifCard.classList.add('hidden');
+                notifCard.classList.remove('flex');
+            });
+
+            notifCard.addEventListener('click', function(e) {
+                if (e.target === notifCard) {
+                    notifCard.classList.add('hidden');
+                    notifCard.classList.remove('flex');
+                }
+            });
+        });
+    </script>
     <!-- Alpine.js -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
@@ -366,7 +490,8 @@
                 4: '/machine-operations',
                 5: '/qc-operations',
                 6: '/expenses',
-                7: '/transactions'
+                7: '/transactions',
+                8: '/debt'
             },
             subNavLinks: {
                 1: '/user-management/all-users',
